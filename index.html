@@ -708,12 +708,113 @@
     .preset-delete:hover {
       transform: scale(1.1);
     }
+
+    /* Info Modal Styles */
+    .about-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0 10px;
+      transition: transform 0.2s;
+    }
+
+    .about-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .modal-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      /* Use theme variable */
+      color: var(--text-color);
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      border: 1px solid #333;
+      text-align: center;
+    }
+
+    .light-theme .modal-content {
+      border-color: #ddd;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: var(--text-color);
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      color: var(--highlight);
+      font-size: 1.8rem;
+    }
+
+    .modal-desc {
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .pwa-install-btn {
+      background-color: var(--highlight);
+      color: #000;
+      border: none;
+      padding: 12px 25px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: none;
+      /* Hidden by default until event fires */
+      margin-top: 15px;
+    }
+
+    .pwa-install-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px var(--highlight);
+    }
   </style>
 </head>
 
 <body>
   <div class="header-row">
     <h1>🏋️‍♂️ Fitness Timer & DJ</h1>
+    <button id="aboutBtn" class="about-btn" onclick="toggleInfoModal()" aria-label="Информация"
+      title="Информация за приложението">ℹ️</button>
 
     <button id="themeToggle" class="theme-toggle-btn" aria-pressed="false" aria-label="Превключи светла/тъмна тема"
       title="Смяна тема">
@@ -1652,6 +1753,70 @@
     window.addEventListener("load", loadPresetsFromStorage);
 
 
+  </script>
+
+  <!-- Info Modal Markup -->
+  <div id="infoModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close" onclick="toggleInfoModal()">×</button>
+      <h2>За приложението</h2>
+      <div class="modal-desc">
+        <p>Това е Вашият ултра лек и мощен фитнес помощник! 🎧🏋️‍♂️</p>
+        <p>Fitness Timer & DJ управлява Вашите тренировки и музика едновременно. Настройте сериите, изберете любимите си
+          mp3 файлове и оставете приложението
+          да бъде Вашият личен DJ – намалява музиката по време на почивка и я усилва, когато е време за работа! Добре е
+          да използвате Chrome браузър или друг който не е месидж базиран от някоя чат платформа.</p>
+      </div>
+      <button id="pwaInstallBtn" class="pwa-install-btn">📲 Инсталирай приложението</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Info Modal & PWA Logic ---
+    function toggleInfoModal() {
+      const modal = document.getElementById('infoModal');
+      modal.classList.toggle('visible');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('infoModal').addEventListener('click', function (e) {
+      if (e.target === this) {
+        toggleInfoModal();
+      }
+    });
+
+    // PWA Install Prompt
+    let deferredPrompt;
+    const installBtn = document.getElementById('pwaInstallBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent Chrome 67 and earlier from automatically showing the prompt
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      deferredPrompt = e;
+      // Update UI to notify the user they can add to home screen
+      installBtn.style.display = 'inline-block';
+
+      console.log('✅ PWA Install Prompt captured');
+    });
+
+    installBtn.addEventListener('click', (e) => {
+      // hide our user interface that shows our A2HS button
+      installBtn.style.display = 'none';
+      // Show the prompt
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the A2HS prompt');
+          } else {
+            console.log('User dismissed the A2HS prompt');
+          }
+          deferredPrompt = null;
+        });
+      }
+    });
   </script>
 </body>
 
