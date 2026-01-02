@@ -633,6 +633,81 @@
     .custom-file-upload:hover {
       background-color: color-mix(in srgb, var(--highlight) 85%, white);
     }
+
+    /* Presets Styles */
+    .presets-container {
+      margin-top: 20px;
+      border-top: 1px solid #333;
+      padding-top: 15px;
+    }
+
+    .preset-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .preset-input {
+      flex: 1;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #444;
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    .btn-save-preset {
+      background: var(--highlight);
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      padding: 0 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .presets-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .preset-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      margin-bottom: 5px;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .preset-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .preset-name {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .preset-delete {
+      background: none;
+      border: none;
+      color: var(--accent-rest);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0 5px;
+      margin-left: 10px;
+    }
+
+    .preset-delete:hover {
+      transform: scale(1.1);
+    }
   </style>
 </head>
 
@@ -695,6 +770,19 @@
         <input type="checkbox" id="stopMusicOnFinish" />
         <label for="stopMusicOnFinish">Спри музиката при ФИНАЛ</label>
       </div>
+    </div>
+
+    <!-- Presets Section -->
+    <div class="presets-container">
+      <label style="display:block; margin-bottom:8px; color:var(--highlight); font-weight:bold;">💾 Запазени
+        Режими</label>
+      <div class="preset-controls">
+        <input type="text" id="presetName" class="preset-input" placeholder="Име (напр. Табата)" />
+        <button class="btn-save-preset" onclick="savePreset()">Save</button>
+      </div>
+      <ul id="presetsList" class="presets-list">
+        <!-- Presets will be loaded here -->
+      </ul>
     </div>
   </div>
 
@@ -1464,6 +1552,106 @@
           .catch(err => console.error('❌ Service Worker failed:', err));
       });
     }
+
+    // --- Presets Logic ---
+    let savedPresets = [];
+    const PRESETS_KEY = "fitness_presets_v1";
+
+    function loadPresetsFromStorage() {
+      const raw = localStorage.getItem(PRESETS_KEY);
+      if (raw) {
+        try {
+          savedPresets = JSON.parse(raw);
+        } catch (e) {
+          console.error("Presets parse error", e);
+          savedPresets = [];
+        }
+      }
+      renderPresets();
+    }
+
+    function savePreset() {
+      const nameInput = document.getElementById("presetName");
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("Моля въведете име на режима.");
+        return;
+      }
+
+      const currentSettings = {
+        name: name,
+        prep: document.getElementById("prepTime").value,
+        work: document.getElementById("workTime").value,
+        rest: document.getElementById("restTime").value,
+        sets: document.getElementById("sets").value
+      };
+
+      savedPresets.push(currentSettings);
+      localStorage.setItem(PRESETS_KEY, JSON.stringify(savedPresets));
+
+      nameInput.value = "";
+      renderPresets();
+    }
+
+    function deletePreset(index, event) {
+      event.stopPropagation(); // prevent clicking the item to load
+      if (confirm("Сигурни ли сте, че искате да изтриете този режим?")) {
+        savedPresets.splice(index, 1);
+        localStorage.setItem(PRESETS_KEY, JSON.stringify(savedPresets));
+        renderPresets();
+      }
+    }
+
+    function loadPreset(index) {
+      const p = savedPresets[index];
+      if (!p) return;
+
+      document.getElementById("prepTime").value = p.prep;
+      document.getElementById("workTime").value = p.work;
+      document.getElementById("restTime").value = p.rest;
+      document.getElementById("sets").value = p.sets;
+
+      // Trigger updates
+      inputIds.forEach(id => {
+        if (['prepTime', 'workTime', 'restTime', 'sets'].includes(id)) {
+          localStorage.setItem("fitness_timer_" + id, p[id === 'prepTime' ? 'prep' : id === 'workTime' ? 'work' : id === 'restTime' ? 'rest' : 'sets']);
+        }
+      });
+
+      updateInputs();
+      resetTimer();
+
+      toggleSettings(); // Close settings to show readiness
+
+      // Visual feedback
+      statusText.textContent = "ЗАРЕДЕН: " + p.name;
+      setTimeout(() => {
+        if (!isRunning) statusText.textContent = isPrep ? "ПОДГОТОВКА" : "ГОТОВ?";
+      }, 2000);
+    }
+
+    function renderPresets() {
+      const list = document.getElementById("presetsList");
+      list.innerHTML = "";
+
+      savedPresets.forEach((p, i) => {
+        const li = document.createElement("li");
+        li.className = "preset-item";
+        li.innerHTML = `
+                <span class="preset-name">${p.name}</span>
+                <span style="font-size:0.8rem; color:#aaa; margin-right:10px;">
+                   ${p.work}s / ${p.rest}s x ${p.sets}
+                </span>
+                <button class="preset-delete" onclick="deletePreset(${i}, event)">✖</button>
+            `;
+        li.onclick = () => loadPreset(i);
+        list.appendChild(li);
+      });
+    }
+
+    window.addEventListener("load", loadPresetsFromStorage);
+
+
   </script>
 </body>
 
