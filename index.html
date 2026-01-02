@@ -751,14 +751,7 @@
       <ul class="playlist" id="playlist"></ul>
     </div>
 
-    <div id="wakeLockContainer" style="display: none; margin-top: 20px; text-align: center; width: 100%; max-width: 400px;">
-  <p style="font-size: 0.8rem; color: #555; margin-bottom: 5px;">🔥 SCREEN LOCK: ACTIVE</p>
-  <img 
-    src="https://mir-s3-cdn-cf.behance.net/project_modules/fs/218fc872735831.5bf1e45999c40.gif" 
-    style="width: 100%; border-radius: 10px; opacity: 0.8;" 
-    alt="Active Workout"
-  />
-</div>
+    <div id="wakeLockContainer" style="display: none; margin-top: 20px; text-align: center; width: 100%; max-width: 400px;"></div>
 	
 
 <script>
@@ -776,12 +769,7 @@ async function requestWakeLock() {
   } catch (err) {
     console.error(`❌ Wake Lock error: ${err.name}, ${err.message}`);
   }
-  // Показваме гифчето независимо дали API-то сработи (за визуална индикация)
-  if (wakeLockContainer) wakeLockContainer.style.display = "block";
-  // Скролваме леко надолу, за да се види гифчето, ако е извън екрана
-  if (window.innerWidth < 600) {
-      setTimeout(() => wakeLockContainer.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
-  }
+
 }
 
 // Функция за освобождаване на екрана
@@ -793,6 +781,23 @@ async function releaseWakeLock() {
   }
   if (wakeLockContainer) wakeLockContainer.style.display = "none";
 }
+
+  function playBeep(frequency = 440, duration = 0.1) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+  }
 
       // -------------------------------------------------------
       // 1. ЛОГВАНЕ И ДИАГНОСТИКА (SYSTEM LOGGING)
@@ -1137,6 +1142,7 @@ function startTimer() {
         if (!isWork && cbBeforeWork.checked) shouldCount = true;
 
         if (currentTime <= countdownThreshold && currentTime > 0 && shouldCount) {
+          playBeep(660, 0.1); // По-висок тон за финалните секунди
           setVolume(LOW_VOLUME);
           speak(currentTime);
         } else {
