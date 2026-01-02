@@ -750,10 +750,49 @@
 
       <ul class="playlist" id="playlist"></ul>
     </div>
+
+    <div id="wakeLockContainer" style="display: none; margin-top: 20px; text-align: center; width: 100%; max-width: 400px;">
+  <p style="font-size: 0.8rem; color: #555; margin-bottom: 5px;">🔥 SCREEN LOCK: ACTIVE</p>
+  <img 
+    src="https://mir-s3-cdn-cf.behance.net/project_modules/fs/218fc872735831.5bf1e45999c40.gif" 
+    style="width: 100%; border-radius: 10px; opacity: 0.8;" 
+    alt="Active Workout"
+  />
+</div>
 	
 
 <script>
+// --- Wake Lock Variable ---
+let wakeLock = null;
+const wakeLockContainer = document.getElementById("wakeLockContainer");
 
+// Функция за активиране на Wake Lock (Държи екрана светнат)
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('💡 Screen Wake Lock active');
+    }
+  } catch (err) {
+    console.error(`❌ Wake Lock error: ${err.name}, ${err.message}`);
+  }
+  // Показваме гифчето независимо дали API-то сработи (за визуална индикация)
+  if (wakeLockContainer) wakeLockContainer.style.display = "block";
+  // Скролваме леко надолу, за да се види гифчето, ако е извън екрана
+  if (window.innerWidth < 600) {
+      setTimeout(() => wakeLockContainer.scrollIntoView({ behavior: "smooth", block: "end" }), 100);
+  }
+}
+
+// Функция за освобождаване на екрана
+async function releaseWakeLock() {
+  if (wakeLock !== null) {
+    await wakeLock.release();
+    wakeLock = null;
+    console.log('🌑 Screen Wake Lock released');
+  }
+  if (wakeLockContainer) wakeLockContainer.style.display = "none";
+}
 
       // -------------------------------------------------------
       // 1. ЛОГВАНЕ И ДИАГНОСТИКА (SYSTEM LOGGING)
@@ -765,6 +804,7 @@
       window.addEventListener("error", (event) => {
         console.error("❌ Глобална грешка в приложението:", event.message);
       });
+
 
       // -------------------------------------------------------
       // 3. MAIN LOGIC
@@ -1010,6 +1050,7 @@
 
 function startTimer() {
         if (isRunning) return;
+        requestWakeLock(); // <--- Активира "без заспиване" и показва GIF-а
 
         // 4. Стандартна логика на таймера
         if (audioCtx.state === "suspended") audioCtx.resume();
@@ -1044,6 +1085,8 @@ function startTimer() {
       function stopTimer(pauseAudio = true) {  
 	   clearInterval(timerInterval);
         isRunning = false;
+
+        releaseWakeLock(); // <--- Позволява заспиване и скрива GIF-а
 		
 
 
