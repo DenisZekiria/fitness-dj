@@ -1,689 +1,724 @@
 <!DOCTYPE html>
 <html lang="bg">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- Да не zoom-ва случайно, като апп а не като сайт да изглежда -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="apple-touch-icon" href="favicon.svg" />
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#121212" />
 
-    <title>Pro Fitness Timer & DJ</title>
-    <style>
-      :root {
-        --bg-color: #121212;
-        --text-color: #ffffff;
-        --accent: #00e676; /* Зелено за работа */
-        --accent-rest: #ff1744; /* Червено за почивка */
-        --card-bg: #1e1e1e;
-        --highlight: #29b6f6;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <!-- Да не zoom-ва случайно, като апп а не като сайт да изглежда -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#121212" />
 
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-      }
+  <title>Pro Fitness Timer & DJ</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --accent: #00e676;
+      /* Зелено за работа */
+      --accent-rest: #ff1744;
+      /* Червено за почивка */
+      --card-bg: #1e1e1e;
+      --highlight: #29b6f6;
+    }
 
-      h1 {
-        margin-bottom: 10px;
-        font-size: 1.5rem;
-        text-align: center;
-      }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-      /* Settings Panel */
-      .settings {
-        background: var(--card-bg);
-        padding: 15px;
-        border-radius: 10px;
-        width: 100%;
-        max-width: 400px;
-        display: flex; /* Променено от grid на flex */
-        flex-direction: column;
-        gap: 15px;
-        margin-bottom: 20px;
-        box-sizing: border-box;
-      }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 1.5rem;
+      text-align: center;
+    }
 
-      .input-group {
-        display: flex;
-        flex-direction: column;
-      }
-      label {
-        font-size: 0.8rem;
-        color: #aaa;
-        margin-bottom: 5px;
-      }
-      input[type="number"] {
-        padding: 8px;
-        background: #333;
-        border: 1px solid #444;
-        color: #fff;
-        border-radius: 5px;
-        font-size: 1.1rem;
-        text-align: center;
-      }
+    /* Settings Panel */
+    .settings {
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      /* Променено от grid на flex */
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
 
-      /* Checkbox groups */
-      .checkbox-group {
-        grid-column: span 2;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        border-top: 1px solid #333;
-        padding-top: 10px;
-      }
-      .cb-row {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start; /* Променено на flex-start за подравняване наляво */
-        gap: 15px; /* Разстояние между текста и чекбокса */
-      }
-      .cb-row label {
-        margin: 0;
-        font-size: 0.9rem;
-        color: #ddd;
-      }
-      input[type="checkbox"] {
-        transform: scale(1.5);
-        accent-color: var(--highlight);
-      }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
 
-      /* Timer Display */
-      .timer-display {
-        text-align: center;
-        margin-bottom: 20px;
-        width: 100%;
-        max-width: 400px;
-        padding: 20px 0;
-        border-radius: 15px;
-        background: var(--card-bg);
-        border: 3px solid var(--accent);
-        transition: border-color 0.3s, background-color 0.3s;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-      }
+    label {
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 5px;
+    }
 
-      .status-text {
-        font-size: 2rem;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-      }
-      .time-text {
-        font-size: 5.5rem;
-        font-weight: bold;
-        line-height: 1;
-        margin: 10px 0;
-        font-variant-numeric: tabular-nums;
-      }
-      .set-text {
-        font-size: 1.2rem;
-        color: #aaa;
-      }
+    input[type="number"] {
+      padding: 8px;
+      background: #333;
+      border: 1px solid #444;
+      color: #fff;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      text-align: center;
+    }
 
-      .rest-mode {
-        border-color: var(--accent-rest);
-      }
-      .rest-mode .status-text {
-        color: var(--accent-rest);
-      }
-      .work-mode .status-text {
-        color: var(--accent);
-      }
-      .finished-mode {
-        border-color: var(--highlight);
-      }
-      .finished-mode .status-text {
-        color: var(--highlight);
-      }
+    /* Checkbox groups */
+    .checkbox-group {
+      grid-column: span 2;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 1px solid #333;
+      padding-top: 10px;
+    }
 
-      /* Controls */
-      .controls {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-        width: 100%;
-        max-width: 400px;
-      }
+    .cb-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      /* Променено на flex-start за подравняване наляво */
+      gap: 15px;
+      /* Разстояние между текста и чекбокса */
+    }
 
-      button {
-        padding: 15px 0;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-weight: bold;
-        cursor: pointer;
-        text-transform: uppercase;
-        transition: transform 0.1s;
-      }
-      button:active {
-        transform: scale(0.95);
-      }
+    .cb-row label {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #ddd;
+    }
 
-      .btn-start {
-        background-color: var(--accent);
-        color: #000;
-        flex: 1;
-      }
-      .btn-stop {
-        background-color: var(--accent-rest);
-        color: #fff;
-        flex: 1;
-      }
-      .btn-reset {
-        background-color: #444;
-        color: #fff;
-        flex: 1;
-      }
+    input[type="checkbox"] {
+      transform: scale(1.5);
+      accent-color: var(--highlight);
+    }
 
-      /* Music Player */
-      .player {
-        width: 100%;
-        max-width: 400px;
-        background: var(--card-bg);
-        padding: 15px;
-        border-radius: 10px;
-        box-sizing: border-box;
-      }
+    /* Timer Display */
+    .timer-display {
+      text-align: center;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px 0;
+      border-radius: 15px;
+      background: var(--card-bg);
+      border: 3px solid var(--accent);
+      transition: border-color 0.3s, background-color 0.3s;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
 
-      .file-input-wrapper {
-        margin-bottom: 10px;
-      }
-      input[type="file"] {
-        width: 100%;
-        color: #aaa;
-      }
+    .status-text {
+      font-size: 2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
 
-      .now-playing {
-        margin: 10px 0;
-        font-style: italic;
-        color: var(--highlight);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 0.9rem;
-      }
+    .time-text {
+      font-size: 5.5rem;
+      font-weight: bold;
+      line-height: 1;
+      margin: 10px 0;
+      font-variant-numeric: tabular-nums;
+    }
 
-      .playlist {
-        max-height: 150px;
-        overflow-y: auto;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        border-top: 1px solid #333;
-      }
+    .set-text {
+      font-size: 1.2rem;
+      color: #aaa;
+    }
 
-      .playlist li {
-        padding: 10px;
-        border-bottom: 1px solid #333;
-        cursor: pointer;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-      }
-      .playlist li:hover {
-        background: #2a2a2a;
-      }
-      .playlist li.active {
-        background: #333;
-        color: var(--highlight);
-        font-weight: bold;
-      }
+    .rest-mode {
+      border-color: var(--accent-rest);
+    }
 
-      audio {
-        width: 100%;
-        margin-top: 10px;
-      }
+    .rest-mode .status-text {
+      color: var(--accent-rest);
+    }
 
-      /* Скриване и показване на настройките */
-      .settings {
-        transition: max-height 0.3s ease-out, opacity 0.3s ease-out,
-          padding 0.3s;
-        max-height: 1000px; /* Достатъчно голямо число */
-        opacity: 1;
-        overflow: hidden;
-      }
+    .work-mode .status-text {
+      color: var(--accent);
+    }
 
-      .settings.collapsed {
-        max-height: 0;
-        opacity: 0;
-        padding: 0;
-        margin: 0; /* Махаме марджина, когато е затворено */
-        pointer-events: none;
-        visibility: hidden; /* Гарантира, че елементът не влияе на подредбата */
-      }
+    .finished-mode {
+      border-color: var(--highlight);
+    }
 
-      .settings-toggle {
-        background: transparent;
-        border: 1px solid #444;
-        color: var(--highlight);
-        /* Малък вертикален (8px) и голям хоризонтален (40px) паддинг за широк вид */
-        padding: 8px 40px;
-        margin: 10px auto 20px auto;
+    .finished-mode .status-text {
+      color: var(--highlight);
+    }
 
-        /* Гарантираме, че няма да се разпъва нагоре/надолу */
-        width: fit-content;
-        height: fit-content;
-        min-height: 0;
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+    }
 
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    button {
+      padding: 15px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: transform 0.1s;
+    }
 
-        cursor: pointer;
-        font-size: 0.85rem;
-        font-weight: bold;
-        text-transform: uppercase;
-        border-radius: 30px; /* Заоблен "pill" дизайн */
-        transition: all 0.2s;
-      }
+    button:active {
+      transform: scale(0.95);
+    }
 
-      .settings-toggle:hover {
-        background: rgba(41, 182, 246, 0.1);
-        border-color: var(--highlight);
-      }
+    .btn-start {
+      background-color: var(--accent);
+      color: #000;
+      flex: 1;
+    }
 
-      /* Цветове за прогрес бара според режима */
-      .rest-mode #progressBar {
-        background-color: var(--accent-rest) !important;
-      }
-      .work-mode #progressBar {
-        background-color: var(--accent) !important;
-      }
-      .finished-mode #progressBar {
-        width: 0% !important;
-      }
+    .btn-stop {
+      background-color: var(--accent-rest);
+      color: #fff;
+      flex: 1;
+    }
 
-      /* ---------- Theme variables: добавят се след :root ---------- */
-      /* По подразбиране оставаме в dark mode (както имаш в :root),
+    .btn-reset {
+      background-color: #444;
+      color: #fff;
+      flex: 1;
+    }
+
+    /* Music Player */
+    .player {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    .file-input-wrapper {
+      margin-bottom: 10px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      color: #aaa;
+    }
+
+    .now-playing {
+      margin: 10px 0;
+      font-style: italic;
+      color: var(--highlight);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.9rem;
+    }
+
+    .playlist {
+      max-height: 150px;
+      overflow-y: auto;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      border-top: 1px solid #333;
+    }
+
+    .playlist li {
+      padding: 10px;
+      border-bottom: 1px solid #333;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .playlist li:hover {
+      background: #2a2a2a;
+    }
+
+    .playlist li.active {
+      background: #333;
+      color: var(--highlight);
+      font-weight: bold;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    /* Скриване и показване на настройките */
+    .settings {
+      transition: max-height 0.3s ease-out, opacity 0.3s ease-out,
+        padding 0.3s;
+      max-height: 1000px;
+      /* Достатъчно голямо число */
+      opacity: 1;
+      overflow: hidden;
+    }
+
+    .settings.collapsed {
+      max-height: 0;
+      opacity: 0;
+      padding: 0;
+      margin: 0;
+      /* Махаме марджина, когато е затворено */
+      pointer-events: none;
+      visibility: hidden;
+      /* Гарантира, че елементът не влияе на подредбата */
+    }
+
+    .settings-toggle {
+      background: transparent;
+      border: 1px solid #444;
+      color: var(--highlight);
+      /* Малък вертикален (8px) и голям хоризонтален (40px) паддинг за широк вид */
+      padding: 8px 40px;
+      margin: 10px auto 20px auto;
+
+      /* Гарантираме, че няма да се разпъва нагоре/надолу */
+      width: fit-content;
+      height: fit-content;
+      min-height: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-radius: 30px;
+      /* Заоблен "pill" дизайн */
+      transition: all 0.2s;
+    }
+
+    .settings-toggle:hover {
+      background: rgba(41, 182, 246, 0.1);
+      border-color: var(--highlight);
+    }
+
+    /* Цветове за прогрес бара според режима */
+    .rest-mode #progressBar {
+      background-color: var(--accent-rest) !important;
+    }
+
+    .work-mode #progressBar {
+      background-color: var(--accent) !important;
+    }
+
+    .finished-mode #progressBar {
+      width: 0% !important;
+    }
+
+    /* ---------- Theme variables: добавят се след :root ---------- */
+    /* По подразбиране оставаме в dark mode (както имаш в :root),
 		   но тук дефинираме ясна light тема и някои глобални поправки. */
 
-      .light-theme {
-        --bg-color: #f7f7f8;
-        --text-color: #0f1720;
-        --card-bg: #ffffff;
-        --input-bg: #ffffff;
-        --input-border: #dcdcdc;
-        --accent: #0077cc; /* син акцент за видимост в светъл режим */
-        --accent-rest: #c62828;
-        --highlight: #0b84ff;
-        --muted: #6b7280;
-        --panel-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
-        --progress-bg: #e6e6e6;
-      }
+    .light-theme {
+      --bg-color: #f7f7f8;
+      --text-color: #0f1720;
+      --card-bg: #ffffff;
+      --input-bg: #ffffff;
+      --input-border: #dcdcdc;
+      --accent: #0077cc;
+      /* син акцент за видимост в светъл режим */
+      --accent-rest: #c62828;
+      --highlight: #0b84ff;
+      --muted: #6b7280;
+      --panel-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+      --progress-bg: #e6e6e6;
+    }
 
-      .dark-theme {
-        /* Можеш да оставиш стойностите от :root (вече са тъмни),
+    .dark-theme {
+      /* Можеш да оставиш стойностите от :root (вече са тъмни),
 			 но дефинираме явни стойности за консистентност */
-        --bg-color: #121212;
-        --text-color: #ffffff;
-        --card-bg: #1e1e1e;
-        --input-bg: #2b2b2b;
-        --input-border: #444;
-        --accent: #00e676;
-        --accent-rest: #ff1744;
-        --highlight: #29b6f6;
-        --muted: #9ca3af;
-        --panel-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-        --progress-bg: #2a2a2a;
-      }
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --card-bg: #1e1e1e;
+      --input-bg: #2b2b2b;
+      --input-border: #444;
+      --accent: #00e676;
+      --accent-rest: #ff1744;
+      --highlight: #29b6f6;
+      --muted: #9ca3af;
+      --panel-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      --progress-bg: #2a2a2a;
+    }
 
-      /* Плавен преход при смяна на тема */
-      body {
-        transition: background-color 240ms ease, color 240ms ease;
-      }
+    /* Плавен преход при смяна на тема */
+    body {
+      transition: background-color 240ms ease, color 240ms ease;
+    }
 
-      /* Theme toggle button */
-      .theme-toggle-wrapper {
-        width: 100%;
-        max-width: 400px;
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 8px;
-        box-sizing: border-box;
-      }
-      .theme-toggle-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        border: 1px solid var(--input-border);
-        background: linear-gradient(
-          180deg,
+    /* Theme toggle button */
+    .theme-toggle-wrapper {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--input-border);
+      background: linear-gradient(180deg,
           rgba(255, 255, 255, 0.02),
-          rgba(0, 0, 0, 0.02)
-        );
-        cursor: pointer;
-        font-size: 1rem;
-        line-height: 1;
-        transition: background 160ms, border-color 160ms, transform 80ms;
-        color: var(--text-color);
-      }
-      .theme-toggle-btn:active {
-        transform: scale(0.98);
-      }
-      .theme-toggle-btn:focus {
-        outline: 3px solid rgba(11, 132, 255, 0.18);
-        outline-offset: 2px;
-      }
+          rgba(0, 0, 0, 0.02));
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: background 160ms, border-color 160ms, transform 80ms;
+      color: var(--text-color);
+    }
 
-      /* Icons inside button: показваме/скриваме спрямо тема */
-      .icon-sun,
-      .icon-moon {
-        display: inline-block;
-      }
-      .light-theme .icon-sun {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      .light-theme .icon-moon {
-        opacity: 0.35;
-        transform: translateY(0);
-      }
-      .dark-theme .icon-sun {
-        opacity: 0.35;
-        transform: translateY(0);
-      }
-      .dark-theme .icon-moon {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .theme-toggle-btn:active {
+      transform: scale(0.98);
+    }
 
-      /* Visually hidden for screen readers */
-      .visually-hidden {
-        position: absolute !important;
-        height: 1px;
-        width: 1px;
-        overflow: hidden;
-        clip: rect(1px, 1px, 1px, 1px);
-        white-space: nowrap;
-      }
+    .theme-toggle-btn:focus {
+      outline: 3px solid rgba(11, 132, 255, 0.18);
+      outline-offset: 2px;
+    }
 
-      /* Override конкретни места в твоя стил, за да използват променливите: */
-      input[type="number"],
-      input[type="file"] {
-        background: var(--input-bg);
-        border: 1px solid var(--input-border);
-        color: var(--text-color);
-      }
-      .settings {
-        background: var(--card-bg);
-        box-shadow: var(--panel-shadow);
-      }
-      .timer-display {
-        background: var(--card-bg);
-        color: var(--text-color);
-      }
-      .player {
-        background: var(--card-bg);
-        color: var(--text-color);
-        box-shadow: var(--panel-shadow);
-      }
-      .now-playing {
-        color: var(--highlight);
-      }
+    /* Icons inside button: показваме/скриваме спрямо тема */
+    .icon-sun,
+    .icon-moon {
+      display: inline-block;
+    }
 
-      /* Playlist hover/active */
-      .playlist li:hover {
-        background: color-mix(in srgb, var(--highlight) 10%, transparent);
-      }
-      .playlist li.active {
-        background: color-mix(in srgb, var(--highlight) 12%, transparent);
-        color: var(--highlight);
-      }
+    .light-theme .icon-sun {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-      /* Buttons: ensure contrast with text */
-      .btn-start {
-        background-color: var(--accent);
-        color: var(--text-color);
-      }
-      .btn-stop {
-        background-color: var(--accent-rest);
-        color: var(--text-color);
-      }
-      .btn-reset {
-        background-color: color-mix(in srgb, var(--text-color) 8%, transparent);
-        color: var(--text-color);
-      }
+    .light-theme .icon-moon {
+      opacity: 0.35;
+      transform: translateY(0);
+    }
 
-      /* Progress bar base */
-      .progress-container {
-        background: var(--progress-bg);
-        border-color: var(--input-border);
-      }
-      /* Ensure progress text contrast */
-      #progressPercent {
-        color: var(--text-color);
-        text-shadow: none;
-      }
+    .dark-theme .icon-sun {
+      opacity: 0.35;
+      transform: translateY(0);
+    }
 
-      /* Accessibility: focus for interactive list items */
-      .playlist li:focus {
-        outline: 2px solid rgba(11, 132, 255, 0.18);
-        outline-offset: -2px;
-      }
+    .dark-theme .icon-moon {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
-      /* Small responsiveness for toggle (mobile) */
-      @media (max-width: 420px) {
-        .theme-toggle-wrapper {
-          justify-content: center;
-          margin-bottom: 6px;
-        }
-      }
+    /* Visually hidden for screen readers */
+    .visually-hidden {
+      position: absolute !important;
+      height: 1px;
+      width: 1px;
+      overflow: hidden;
+      clip: rect(1px, 1px, 1px, 1px);
+      white-space: nowrap;
+    }
 
-      /* Header: h1 + theme toggle на един ред */
-      .header-row {
-        width: 100%;
-        max-width: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin-bottom: 10px;
-      }
+    /* Override конкретни места в твоя стил, за да използват променливите: */
+    input[type="number"],
+    input[type="file"] {
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      color: var(--text-color);
+    }
 
-      .header-row h1 {
-        margin: 0;
-        font-size: 1.6rem;
-        line-height: 1.2;
-        text-align: left;
-        flex: 1;
-      }
+    .settings {
+      background: var(--card-bg);
+      box-shadow: var(--panel-shadow);
+    }
 
-      /* На много малки екрани – запазваме четимост */
-      @media (max-width: 380px) {
-        .header-row h1 {
-          font-size: 1.4rem;
-        }
-      }
+    .timer-display {
+      background: var(--card-bg);
+      color: var(--text-color);
+    }
 
-      /* Light theme: по-добра четимост на checkbox текстовете */
-      .light-theme label {
-        color: #2f2f2f; /* тъмно сиво – по-меко от чисто черно */
-      }
+    .player {
+      background: var(--card-bg);
+      color: var(--text-color);
+      box-shadow: var(--panel-shadow);
+    }
 
-      /* Самите чекбоксове */
-      .light-theme input[type="checkbox"] {
-        accent-color: #555; /* тъмно сиво, не черно */
-      }
+    .now-playing {
+      color: var(--highlight);
+    }
 
-      button,
-      input[type="checkbox"] {
-        touch-action: manipulation; /* Премахва забавянето при тапване на мобилни */
-        -webkit-tap-highlight-color: transparent; /* Маха синиото квадратче при тап */
-      }
+    /* Playlist hover/active */
+    .playlist li:hover {
+      background: color-mix(in srgb, var(--highlight) 10%, transparent);
+    }
 
-      /* Player Controls - Големи бутони за телефон */
-      .player-controls {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-        justify-content: space-between;
-      }
+    .playlist li.active {
+      background: color-mix(in srgb, var(--highlight) 12%, transparent);
+      color: var(--highlight);
+    }
 
-      .player-btn {
-        background: #333;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 12px;
-        font-size: 1.2rem;
-        flex: 1;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
+    /* Buttons: ensure contrast with text */
+    .btn-start {
+      background-color: var(--accent);
+      color: var(--text-color);
+    }
+
+    .btn-stop {
+      background-color: var(--accent-rest);
+      color: var(--text-color);
+    }
+
+    .btn-reset {
+      background-color: color-mix(in srgb, var(--text-color) 8%, transparent);
+      color: var(--text-color);
+    }
+
+    /* Progress bar base */
+    .progress-container {
+      background: var(--progress-bg);
+      border-color: var(--input-border);
+    }
+
+    /* Ensure progress text contrast */
+    #progressPercent {
+      color: var(--text-color);
+      text-shadow: none;
+    }
+
+    /* Accessibility: focus for interactive list items */
+    .playlist li:focus {
+      outline: 2px solid rgba(11, 132, 255, 0.18);
+      outline-offset: -2px;
+    }
+
+    /* Small responsiveness for toggle (mobile) */
+    @media (max-width: 420px) {
+      .theme-toggle-wrapper {
         justify-content: center;
+        margin-bottom: 6px;
       }
+    }
 
-      .player-btn:active {
-        background: #555;
-        transform: scale(0.95);
+    /* Header: h1 + theme toggle на един ред */
+    .header-row {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .header-row h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      line-height: 1.2;
+      text-align: left;
+      flex: 1;
+    }
+
+    /* На много малки екрани – запазваме четимост */
+    @media (max-width: 380px) {
+      .header-row h1 {
+        font-size: 1.4rem;
       }
+    }
 
-      /* Активен Shuffle бутон */
-      .btn-shuffle.active {
-        color: var(--highlight);
-        background: rgba(41, 182, 246, 0.15);
-        border: 1px solid var(--highlight);
-      }
+    /* Light theme: по-добра четимост на checkbox текстовете */
+    .light-theme label {
+      color: #2f2f2f;
+      /* тъмно сиво – по-меко от чисто черно */
+    }
 
-      /* Скриваме истинския инпут */
-      #audioFiles {
-        display: none;
-      }
+    /* Самите чекбоксове */
+    .light-theme input[type="checkbox"] {
+      accent-color: #555;
+      /* тъмно сиво, не черно */
+    }
 
-      /* Стилизираме лейбъла като бутон */
-      .custom-file-upload {
-        display: inline-block;
-        padding: 12px 20px;
-        cursor: pointer;
-        background-color: var(--highlight);
-        color: #000;
-        border-radius: 8px;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-size: 0.9rem;
-        text-align: center;
-        transition: transform 0.1s, background-color 0.2s;
-        width: 100%;
-        box-sizing: border-box;
-      }
+    button,
+    input[type="checkbox"] {
+      touch-action: manipulation;
+      /* Премахва забавянето при тапване на мобилни */
+      -webkit-tap-highlight-color: transparent;
+      /* Маха синиото квадратче при тап */
+    }
 
-      .custom-file-upload:active {
-        transform: scale(0.98);
-      }
+    /* Player Controls - Големи бутони за телефон */
+    .player-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: space-between;
+    }
 
-      .custom-file-upload:hover {
-        background-color: color-mix(in srgb, var(--highlight) 85%, white);
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header-row">
-      <h1>🏋️‍♂️ Fitness Timer & DJ</h1>
+    .player-btn {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 1.2rem;
+      flex: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-      <button
-        id="themeToggle"
-        class="theme-toggle-btn"
-        aria-pressed="false"
-        aria-label="Превключи светла/тъмна тема"
-        title="Смяна тема"
-      >
-        <span class="icon-sun" aria-hidden="true">☀️</span>
-        <span class="icon-moon" aria-hidden="true">🌙</span>
-        <span class="visually-hidden">Смяна тема</span>
-      </button>
-    </div>
+    .player-btn:active {
+      background: #555;
+      transform: scale(0.95);
+    }
 
-    <button class="settings-toggle" onclick="toggleSettings()">
-      ☰ Настройки
+    /* Активен Shuffle бутон */
+    .btn-shuffle.active {
+      color: var(--highlight);
+      background: rgba(41, 182, 246, 0.15);
+      border: 1px solid var(--highlight);
+    }
+
+    /* Скриваме истинския инпут */
+    #audioFiles {
+      display: none;
+    }
+
+    /* Стилизираме лейбъла като бутон */
+    .custom-file-upload {
+      display: inline-block;
+      padding: 12px 20px;
+      cursor: pointer;
+      background-color: var(--highlight);
+      color: #000;
+      border-radius: 8px;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      text-align: center;
+      transition: transform 0.1s, background-color 0.2s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .custom-file-upload:active {
+      transform: scale(0.98);
+    }
+
+    .custom-file-upload:hover {
+      background-color: color-mix(in srgb, var(--highlight) 85%, white);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header-row">
+    <h1>🏋️‍♂️ Fitness Timer & DJ</h1>
+
+    <button id="themeToggle" class="theme-toggle-btn" aria-pressed="false" aria-label="Превключи светла/тъмна тема"
+      title="Смяна тема">
+      <span class="icon-sun" aria-hidden="true">☀️</span>
+      <span class="icon-moon" aria-hidden="true">🌙</span>
+      <span class="visually-hidden">Смяна тема</span>
     </button>
+  </div>
 
-    <div class="settings" id="settingsPanel">
-      <div class="input-group">
-        <label>Подготовка (сек)</label>
-        <input type="number" id="prepTime" value="10" />
-      </div>
-      <div class="input-group">
-        <label>Работа (сек)</label>
-        <input type="number" id="workTime" value="30" />
-      </div>
-      <div class="input-group">
-        <label>Почивка (сек)</label>
-        <input type="number" id="restTime" value="5" />
-      </div>
-      <div class="input-group">
-        <label>Серии (брой)</label>
-        <input type="number" id="sets" value="8" />
-      </div>
+  <button class="settings-toggle" onclick="toggleSettings()">
+    ☰ Настройки
+  </button>
 
-      <div class="checkbox-group">
-        <div class="input-group">
-          <label>Отброяване глас (сек)</label>
-          <input type="number" id="voiceCountdown" value="5" />
-        </div>
+  <div class="settings" id="settingsPanel">
+    <div class="input-group">
+      <label>Подготовка (сек)</label>
+      <input type="number" id="prepTime" value="10" min="0" oninput="if(this.value<0)this.value=0" />
+    </div>
+    <div class="input-group">
+      <label>Работа (сек)</label>
+      <input type="number" id="workTime" value="30" min="0" oninput="if(this.value<0)this.value=0" />
+    </div>
+    <div class="input-group">
+      <label>Почивка (сек)</label>
+      <input type="number" id="restTime" value="5" min="0" oninput="if(this.value<0)this.value=0" />
+    </div>
+    <div class="input-group">
+      <label>Серии (брой)</label>
+      <input type="number" id="sets" value="8" min="1" oninput="if(this.value<1)this.value=1" />
+    </div>
 
-        <div class="cb-row">
-          <input type="checkbox" id="countBeforeRest" checked />
-          <label for="countBeforeRest">Отброявай преди ПОЧИВКА</label>
-        </div>
-        <div class="cb-row">
-          <input type="checkbox" id="countBeforeWork" checked />
-          <label for="countBeforeWork">Отброявай преди СЕРИЯ (GO)</label>
-        </div>
-        <div class="cb-row">
-          <input type="checkbox" id="stopMusicOnFinish" />
-          <label for="stopMusicOnFinish">Спри музиката при ФИНАЛ</label>
-        </div>
+    <div class="input-group" style="margin-top: 5px; text-align: center;">
+      <div id="totalTimeDisplay"
+        style="font-size: 1.2rem; color: var(--highlight); font-weight: bold; border: 1px solid var(--highlight); padding: 10px; border-radius: 8px;">
+        Общо: 00:00
       </div>
     </div>
 
-    <div class="timer-display work-mode" id="timerDisplay">
-      <div class="status-text" id="statusText">ГОТОВ?</div>
-      <div class="time-text" id="timeText">00</div>
-      <div class="set-text" id="setText">Серия: 0 / 8</div>
-      <br />
-      <div
-        class="progress-container"
-        style="
+    <div class="checkbox-group">
+      <div class="input-group">
+        <label>Отброяване глас (сек)</label>
+        <input type="number" id="voiceCountdown" value="5" min="0" oninput="if(this.value<0)this.value=0" />
+      </div>
+
+      <div class="cb-row">
+        <input type="checkbox" id="countBeforeRest" checked />
+        <label for="countBeforeRest">Отброявай преди ПОЧИВКА</label>
+      </div>
+      <div class="cb-row">
+        <input type="checkbox" id="countBeforeWork" checked />
+        <label for="countBeforeWork">Отброявай преди СЕРИЯ (GO)</label>
+      </div>
+      <div class="cb-row">
+        <input type="checkbox" id="stopMusicOnFinish" />
+        <label for="stopMusicOnFinish">Спри музиката при ФИНАЛ</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="timer-display work-mode" id="timerDisplay">
+    <div class="status-text" id="statusText">ГОТОВ?</div>
+    <div class="time-text" id="timeText">00</div>
+    <div class="set-text" id="setText">Серия: 0 / 8</div>
+    <br />
+    <div class="progress-container" style="
           width: 100%;
           height: 20px;
           background: #333;
-          border-radius: 10px;
           margin-bottom: 20px;
           overflow: hidden;
           border: 1px solid #444;
           position: relative;
-        "
-      >
-        <div
-          id="progressBar"
-          style="
+        ">
+      <div id="progressBar" style="
             width: 0%;
             height: 100%;
             background: var(--highlight);
             transition: width 0.3s ease-out;
-          "
-        ></div>
-        <div
-          id="progressPercent"
-          style="
+          "></div>
+      <div id="progressPercent" style="
             position: absolute;
             width: 100%;
             top: 0;
@@ -694,692 +729,742 @@
             font-weight: bold;
             color: #fff;
             text-shadow: 1px 1px 2px #000;
-          "
-        >
-          0%
-        </div>
+          ">
+        0%
       </div>
     </div>
+  </div>
 
-    <div class="controls">
-      <button class="btn-start" onclick="startTimer()">Start</button>
-      <button class="btn-stop" onclick="stopTimer()">Pause</button>
-      <button class="btn-reset" onclick="resetTimer()">Reset</button>
-    </div>
+  <div class="controls">
+    <button class="btn-start" onclick="startTimer()">Start</button>
+    <button class="btn-stop" onclick="stopTimer()">Pause</button>
+    <button class="btn-reset" onclick="resetTimer()">Reset</button>
+  </div>
 
-    <div class="player">
-      <h3>🎵 Gym DJ</h3>
-      <div class="file-input-wrapper">
-        <label for="audioFiles" class="custom-file-upload">
-          ➕ Добави песни
-        </label>
+  <div class="player">
+    <h3>🎵 Gym DJ</h3>
+    <div class="file-input-wrapper">
+      <label for="audioFiles" class="custom-file-upload">
+        ➕ Добави песни
+      </label>
 
-        <input
-          type="file"
-          id="audioFiles"
-          multiple
-          accept="audio/*"
-          onchange="loadPlaylist()"
-        />
+      <input type="file" id="audioFiles" multiple accept="audio/*" onchange="loadPlaylist()" />
 
-        <div
-          style="
+      <div style="
             font-size: 0.8rem;
             color: #aaa;
             margin-top: 8px;
             text-align: center;
             line-height: 1.4;
-          "
-        >
-          💡 За добавяне на множествени песни ги добавете от бутона "Моите
-          файлове", "My Files", "Storage".<br />
-          Можеш да натискаш бутона многократно, за да добавяш още песни.
-        </div>
+          ">
+        💡 За добавяне на множествени песни ги добавете от бутона "Моите
+        файлове", "My Files", "Storage".<br />
+        Можеш да натискаш бутона многократно, за да добавяш още песни.
       </div>
-
-      <div class="now-playing" id="nowPlaying">Няма избрана песен</div>
-
-      <audio
-        id="audioPlayer"
-        style="width: 100%; height: 30px; margin-top: 10px"
-      ></audio>
-
-      <div class="player-controls">
-        <button class="player-btn" onclick="playPrev()">⏮</button>
-        <!-- <button class="player-btn" onclick="togglePlay()">⏯</button> -->
-        <button class="player-btn" onclick="playNext()">⏭</button>
-        <button
-          class="player-btn btn-shuffle"
-          id="btnShuffle"
-          onclick="toggleShuffle()"
-        >
-          🔀
-        </button>
-      </div>
-
-      <br />
-
-      <ul class="playlist" id="playlist"></ul>
     </div>
 
-    <div
-      id="wakeLockContainer"
-      style="
+    <div class="now-playing" id="nowPlaying">Няма избрана песен</div>
+
+    <div style="margin: 15px 0;">
+      <label for="volumeSlider"
+        style="display: flex; justify-content: space-between; font-size: 0.9rem; color: #aaa; margin-bottom: 5px;">
+        <span>Сила на музиката</span>
+        <span id="volValue">100%</span>
+      </label>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1"
+        style="width: 100%; height: 6px; accent-color: var(--highlight); cursor: pointer;"
+        oninput="document.getElementById('volValue').textContent = Math.round(this.value*100)+'%'">
+    </div>
+
+    <audio id="audioPlayer" style="width: 100%; height: 30px; margin-top: 10px"></audio>
+
+    <div class="player-controls">
+      <button class="player-btn" onclick="playPrev()">⏮</button>
+      <!-- <button class="player-btn" onclick="togglePlay()">⏯</button> -->
+      <button class="player-btn" onclick="playNext()">⏭</button>
+      <button class="player-btn btn-shuffle" id="btnShuffle" onclick="toggleShuffle()">
+        🔀
+      </button>
+    </div>
+
+    <br />
+
+    <ul class="playlist" id="playlist"></ul>
+  </div>
+
+  <div id="wakeLockContainer" style="
         display: none;
         margin-top: 20px;
         text-align: center;
         width: 100%;
         max-width: 400px;
-      "
-    ></div>
+      "></div>
 
-    <script>
-      // --- Wake Lock Variable ---
-      let wakeLock = null;
-      const wakeLockContainer = document.getElementById("wakeLockContainer");
+  <script>
+    // --- Wake Lock Variable ---
+    let wakeLock = null;
+    const wakeLockContainer = document.getElementById("wakeLockContainer");
 
-      // Функция за активиране на Wake Lock (Държи екрана светнат)
-      async function requestWakeLock() {
-        try {
-          if ("wakeLock" in navigator) {
-            wakeLock = await navigator.wakeLock.request("screen");
-            console.log("💡 Screen Wake Lock active");
-          }
-        } catch (err) {
-          console.error(`❌ Wake Lock error: ${err.name}, ${err.message}`);
+    // Функция за активиране на Wake Lock (Държи екрана светнат)
+    async function requestWakeLock() {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await navigator.wakeLock.request("screen");
+          console.log("💡 Screen Wake Lock active");
         }
+      } catch (err) {
+        console.error(`❌ Wake Lock error: ${err.name}, ${err.message}`);
       }
+    }
 
-      // Функция за освобождаване на екрана
-      async function releaseWakeLock() {
-        if (wakeLock !== null) {
-          await wakeLock.release();
-          wakeLock = null;
-          console.log("🌑 Screen Wake Lock released");
-        }
-        if (wakeLockContainer) wakeLockContainer.style.display = "none";
+    // Функция за освобождаване на екрана
+    async function releaseWakeLock() {
+      if (wakeLock !== null) {
+        await wakeLock.release();
+        wakeLock = null;
+        console.log("🌑 Screen Wake Lock released");
       }
+      if (wakeLockContainer) wakeLockContainer.style.display = "none";
+    }
 
-      function playBeep(frequency = 440, duration = 0.1) {
+    function playBeep(frequency = 440, duration = 0.1) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioCtx.currentTime + duration
+      );
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    // -------------------------------------------------------
+    // 1. ЛОГВАНЕ И ДИАГНОСТИКА (SYSTEM LOGGING)
+    // -------------------------------------------------------
+    window.addEventListener("load", () => {
+      console.log(
+        "%c✅ Приложението е заредено успешно.",
+        "color: green; font-weight: bold; font-size: 14px;"
+      );
+    });
+
+    window.addEventListener("error", (event) => {
+      console.error("❌ Глобална грешка в приложението:", event.message);
+    });
+
+    // -------------------------------------------------------
+    // 3. MAIN LOGIC
+    // -------------------------------------------------------
+    let prepDuration = 10;
+    let isPrep = false;
+
+    let workDuration = 30;
+    let restDuration = 5;
+    let totalSets = 8;
+
+    let currentSet = 1;
+    let currentTime = 0;
+    let isWork = true;
+    let timerInterval = null;
+    let isRunning = false;
+
+    let countdownThreshold = 5;
+    let totalWorkoutSeconds = 0;
+    let elapsedSeconds = 0;
+
+    // DOM Elements
+    const statusText = document.getElementById("statusText");
+    const timeText = document.getElementById("timeText");
+    const setText = document.getElementById("setText");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const audioPlayer = document.getElementById("audioPlayer");
+    const playlistEl = document.getElementById("playlist");
+    const nowPlayingEl = document.getElementById("nowPlaying");
+
+    const cbBeforeRest = document.getElementById("countBeforeRest");
+    const cbBeforeWork = document.getElementById("countBeforeWork");
+
+    // Audio Logic
+    let isShuffle = false;
+    let playlist = [];
+    let currentTrackIndex = 0;
+    let musicVolumeLevel = 1.0;
+    const DUCKED_VOLUME_RATIO = 0.2; // 20% of user volume
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playVictorySound() {
+      const t = audioCtx.currentTime;
+      const playNote = (freq, time, duration) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(
-          0.01,
-          audioCtx.currentTime + duration
-        );
-
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, time);
+        gain.gain.setValueAtTime(0.2, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
+        osc.start(time);
+        osc.stop(time + duration);
+      };
 
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+      playNote(523.25, t, 0.4);
+      playNote(659.25, t + 0.1, 0.4);
+      playNote(783.99, t + 0.2, 0.4);
+      playNote(1046.5, t + 0.4, 0.8);
+
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(1200, t);
+      osc2.frequency.linearRampToValueAtTime(2000, t + 0.5);
+      gain2.gain.setValueAtTime(0.1, t);
+      gain2.gain.linearRampToValueAtTime(0, t + 0.5);
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+      osc2.start(t);
+      osc2.stop(t + 0.5);
+    }
+
+    function loadPlaylist() {
+      const fileInput = document.getElementById("audioFiles");
+      const newFiles = Array.from(fileInput.files);
+
+      if (newFiles.length === 0) {
+        console.warn("⚠️ Няма избрани файлове.");
+        return;
       }
 
-      // -------------------------------------------------------
-      // 1. ЛОГВАНЕ И ДИАГНОСТИКА (SYSTEM LOGGING)
-      // -------------------------------------------------------
-      window.addEventListener("load", () => {
+      try {
+        playlist = [...playlist, ...newFiles];
         console.log(
-          "%c✅ Приложението е заредено успешно.",
-          "color: green; font-weight: bold; font-size: 14px;"
+          `📂 Успешно добавени ${newFiles.length} файла. Общо песни: ${playlist.length}`
         );
+
+        renderPlaylistUI();
+
+        if (audioPlayer.src === "" || audioPlayer.paused) {
+          const firstNewIndex = playlist.length - newFiles.length;
+          loadTrack(firstNewIndex, false);
+        }
+        fileInput.value = "";
+      } catch (error) {
+        console.error("❌ Грешка при зареждане на плейлиста:", error);
+        alert("Възникна грешка при зареждането на файловете.");
+      }
+    }
+
+    function renderPlaylistUI() {
+      playlistEl.innerHTML = "";
+      playlist.forEach((file, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${index + 1}. ${file.name}</span>`;
+        li.onclick = () => playTrack(index);
+        if (index === currentTrackIndex) li.classList.add("active");
+        playlistEl.appendChild(li);
       });
+    }
 
-      window.addEventListener("error", (event) => {
-        console.error("❌ Глобална грешка в приложението:", event.message);
-      });
+    function loadTrack(index, autoPlay = true) {
+      if (index >= playlist.length) index = 0;
+      currentTrackIndex = index;
 
-      // -------------------------------------------------------
-      // 3. MAIN LOGIC
-      // -------------------------------------------------------
-      let prepDuration = 10;
-      let isPrep = false;
+      try {
+        const fileUrl = URL.createObjectURL(playlist[index]);
+        audioPlayer.src = fileUrl;
+        nowPlayingEl.textContent = "▶ " + playlist[index].name;
+        console.log("🎵 Заредена песен:", playlist[index].name);
 
-      let workDuration = 30;
-      let restDuration = 5;
-      let totalSets = 8;
+        Array.from(playlistEl.children).forEach((li, i) => {
+          li.classList.toggle("active", i === index);
+        });
 
-      let currentSet = 1;
-      let currentTime = 0;
-      let isWork = true;
-      let timerInterval = null;
-      let isRunning = false;
-
-      let countdownThreshold = 5;
-      let totalWorkoutSeconds = 0;
-      let elapsedSeconds = 0;
-
-      // DOM Elements
-      const statusText = document.getElementById("statusText");
-      const timeText = document.getElementById("timeText");
-      const setText = document.getElementById("setText");
-      const timerDisplay = document.getElementById("timerDisplay");
-      const audioPlayer = document.getElementById("audioPlayer");
-      const playlistEl = document.getElementById("playlist");
-      const nowPlayingEl = document.getElementById("nowPlaying");
-
-      const cbBeforeRest = document.getElementById("countBeforeRest");
-      const cbBeforeWork = document.getElementById("countBeforeWork");
-
-      // Audio Logic
-      let isShuffle = false;
-      let playlist = [];
-      let currentTrackIndex = 0;
-      const MAX_VOLUME = 1.0;
-      const LOW_VOLUME = 0.2;
-
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-      function playVictorySound() {
-        const t = audioCtx.currentTime;
-        const playNote = (freq, time, duration) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(freq, time);
-          gain.gain.setValueAtTime(0.2, time);
-          gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(time);
-          osc.stop(time + duration);
+        audioPlayer.onended = () => {
+          playNext(); // Changed to playNext to handle shuffle correctly
         };
 
-        playNote(523.25, t, 0.4);
-        playNote(659.25, t + 0.1, 0.4);
-        playNote(783.99, t + 0.2, 0.4);
-        playNote(1046.5, t + 0.4, 0.8);
-
-        const osc2 = audioCtx.createOscillator();
-        const gain2 = audioCtx.createGain();
-        osc2.type = "sine";
-        osc2.frequency.setValueAtTime(1200, t);
-        osc2.frequency.linearRampToValueAtTime(2000, t + 0.5);
-        gain2.gain.setValueAtTime(0.1, t);
-        gain2.gain.linearRampToValueAtTime(0, t + 0.5);
-        osc2.connect(gain2);
-        gain2.connect(audioCtx.destination);
-        osc2.start(t);
-        osc2.stop(t + 0.5);
-      }
-
-      function loadPlaylist() {
-        const fileInput = document.getElementById("audioFiles");
-        const newFiles = Array.from(fileInput.files);
-
-        if (newFiles.length === 0) {
-          console.warn("⚠️ Няма избрани файлове.");
-          return;
+        if (autoPlay) {
+          audioPlayer
+            .play()
+            .catch((e) => console.error("❌ Audio Autoplay failed:", e));
         }
-
-        try {
-          playlist = [...playlist, ...newFiles];
-          console.log(
-            `📂 Успешно добавени ${newFiles.length} файла. Общо песни: ${playlist.length}`
-          );
-
-          renderPlaylistUI();
-
-          if (audioPlayer.src === "" || audioPlayer.paused) {
-            const firstNewIndex = playlist.length - newFiles.length;
-            loadTrack(firstNewIndex, false);
-          }
-          fileInput.value = "";
-        } catch (error) {
-          console.error("❌ Грешка при зареждане на плейлиста:", error);
-          alert("Възникна грешка при зареждането на файловете.");
-        }
+      } catch (err) {
+        console.error("❌ Грешка при възпроизвеждане на песен:", err);
       }
+    }
 
-      function renderPlaylistUI() {
-        playlistEl.innerHTML = "";
-        playlist.forEach((file, index) => {
-          const li = document.createElement("li");
-          li.innerHTML = `<span>${index + 1}. ${file.name}</span>`;
-          li.onclick = () => playTrack(index);
-          if (index === currentTrackIndex) li.classList.add("active");
-          playlistEl.appendChild(li);
-        });
+    function playTrack(index) {
+      loadTrack(index, true);
+    }
+
+    function updateMusicVolume(val) {
+      musicVolumeLevel = parseFloat(val);
+      localStorage.setItem("fitness_music_volume", musicVolumeLevel);
+      audioPlayer.volume = musicVolumeLevel;
+    }
+
+    function setVolume(levelRatio) {
+      // levelRatio: 1.0 for normal, less for ducking
+      if (levelRatio >= 1.0) {
+        audioPlayer.volume = musicVolumeLevel;
+      } else {
+        audioPlayer.volume = musicVolumeLevel * DUCKED_VOLUME_RATIO;
       }
+    }
 
-      function loadTrack(index, autoPlay = true) {
-        if (index >= playlist.length) index = 0;
-        currentTrackIndex = index;
-
-        try {
-          const fileUrl = URL.createObjectURL(playlist[index]);
-          audioPlayer.src = fileUrl;
-          nowPlayingEl.textContent = "▶ " + playlist[index].name;
-          console.log("🎵 Заредена песен:", playlist[index].name);
-
-          Array.from(playlistEl.children).forEach((li, i) => {
-            li.classList.toggle("active", i === index);
-          });
-
-          audioPlayer.onended = () => {
-            playNext(); // Changed to playNext to handle shuffle correctly
-          };
-
-          if (autoPlay) {
-            audioPlayer
-              .play()
-              .catch((e) => console.error("❌ Audio Autoplay failed:", e));
-          }
-        } catch (err) {
-          console.error("❌ Грешка при възпроизвеждане на песен:", err);
-        }
-      }
-
-      function playTrack(index) {
-        loadTrack(index, true);
-      }
-
-      function setVolume(level) {
-        audioPlayer.volume = level;
-      }
-
-      function togglePlay() {
-        if (playlist.length === 0) return;
-        if (audioPlayer.paused) {
-          audioPlayer.play();
-        } else {
-          audioPlayer.pause();
-        }
-      }
-
-      function toggleShuffle() {
-        isShuffle = !isShuffle;
-        const btn = document.getElementById("btnShuffle");
-        if (isShuffle) {
-          btn.classList.add("active");
-        } else {
-          btn.classList.remove("active");
-        }
-        console.log("🔀 Shuffle mode:", isShuffle);
-      }
-
-      function playNext() {
-        if (playlist.length === 0) return;
-
-        let nextIndex;
-        if (isShuffle) {
-          do {
-            nextIndex = Math.floor(Math.random() * playlist.length);
-          } while (playlist.length > 1 && nextIndex === currentTrackIndex);
-        } else {
-          nextIndex = currentTrackIndex + 1;
-          if (nextIndex >= playlist.length) nextIndex = 0;
-        }
-        playTrack(nextIndex);
-      }
-
-      function playPrev() {
-        if (playlist.length === 0) return;
-        let prevIndex = currentTrackIndex - 1;
-        if (prevIndex < 0) prevIndex = playlist.length - 1;
-        playTrack(prevIndex);
-      }
-
-      function speak(text) {
-        if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "en-US";
-        utterance.rate = 1.2;
-        window.speechSynthesis.speak(utterance);
-      }
-
-      // --- Timer Logic ---
-      function updateInputs() {
-        workDuration = Math.max(
-          1,
-          parseInt(document.getElementById("workTime").value) || 0
-        );
-        restDuration = Math.max(
-          0,
-          parseInt(document.getElementById("restTime").value) || 0
-        );
-        totalSets = Math.max(
-          1,
-          parseInt(document.getElementById("sets").value) || 1
-        );
-        prepDuration = Math.max(
-          0,
-          parseInt(document.getElementById("prepTime").value) || 0
-        );
-
-        totalWorkoutSeconds =
-          prepDuration +
-          (workDuration + restDuration) * totalSets -
-          restDuration;
-
-        let requestedCountdown =
-          parseInt(document.getElementById("voiceCountdown").value) || 0;
-        let minInterval =
-          isPrep && prepDuration > 0
-            ? Math.min(workDuration, restDuration || workDuration, prepDuration)
-            : Math.min(workDuration, restDuration || workDuration);
-
-        if (requestedCountdown >= minInterval && minInterval > 0) {
-          countdownThreshold = minInterval - 1;
-        } else {
-          countdownThreshold = Math.max(0, requestedCountdown);
-        }
-        document.getElementById("voiceCountdown").value = countdownThreshold;
-      }
-
-      function drawDisplay() {
-        timeText.textContent = currentTime;
-        setText.textContent = `Серия: ${currentSet} / ${totalSets}`;
-
-        const progressPercentValue =
-          Math.min(
-            100,
-            Math.round((elapsedSeconds / totalWorkoutSeconds) * 100)
-          ) || 0;
-
-        document.getElementById("progressBar").style.width =
-          progressPercentValue + "%";
-        document.getElementById("progressPercent").textContent =
-          progressPercentValue + "%";
-
-        timerDisplay.classList.remove("finished-mode");
-        if (isPrep) {
-          statusText.textContent = "ПОДГОТОВКА";
-          timerDisplay.style.borderColor = "var(--highlight)";
-        } else if (isWork) {
-          statusText.textContent = "GO / РАБОТА";
-          timerDisplay.classList.remove("rest-mode");
-          timerDisplay.classList.add("work-mode");
-          timerDisplay.style.borderColor = "";
-        } else {
-          statusText.textContent = "BREAK / ПОЧИВКА";
-          timerDisplay.classList.remove("work-mode");
-          timerDisplay.classList.add("rest-mode");
-        }
-      }
-
-      function startTimer() {
-        if (isRunning) return;
-        requestWakeLock(); // <--- Активира "без заспиване" и показва GIF-а
-
-        // 4. Стандартна логика на таймера
-        if (audioCtx.state === "suspended") audioCtx.resume();
-        updateInputs();
-
-        if (playlist.length > 0 && audioPlayer.paused) {
-          audioPlayer.play().catch((e) => console.log("Audio play error", e));
-        }
-
-        // Първоначален старт (ако е начало)
-        if (currentTime === 0 && currentSet === 1 && isWork && !isPrep) {
-          if (prepDuration > 0) {
-            isPrep = true;
-            currentTime = prepDuration;
-            speak("Prepare");
-          } else {
-            currentTime = workDuration;
-            speak("Starting Workout");
-          }
-        }
-
-        isRunning = true;
-        drawDisplay();
-        console.log("⏱️ Timer started");
-
-        // 5. Стартиране на интервала (това е единственият setInterval, който трябва да има)
-        timerInterval = setInterval(() => {
-          tick();
-        }, 1000);
-      }
-
-      function stopTimer(pauseAudio = true) {
-        clearInterval(timerInterval);
-        isRunning = false;
-
-        releaseWakeLock(); // <--- Позволява заспиване и скрива GIF-а
-
-        console.log("⏱️ Timer paused/stopped");
-
-        if (pauseAudio && !audioPlayer.paused) {
-          audioPlayer.pause();
-        }
-
-        setVolume(MAX_VOLUME);
-      }
-
-      function resetTimer() {
-        stopTimer();
-        elapsedSeconds = 0;
-        document.getElementById("progressBar").style.width = "0%";
-        document.getElementById("progressPercent").textContent = "0%";
-        isWork = true;
-        isPrep = true;
-        updateInputs();
-
-        currentTime = prepDuration > 0 ? prepDuration : workDuration;
-        if (prepDuration <= 0) isPrep = false;
-
-        statusText.textContent = isPrep ? "ПОДГОТОВКА" : "ГОТОВ?";
-        timeText.textContent = currentTime;
-        setText.textContent = `Серия: 0 / ${totalSets}`;
-
-        timerDisplay.classList.remove("rest-mode", "finished-mode");
-        timerDisplay.classList.add("work-mode");
-
+    function togglePlay() {
+      if (playlist.length === 0) return;
+      if (audioPlayer.paused) {
+        audioPlayer.play();
+      } else {
         audioPlayer.pause();
-        audioPlayer.currentTime = 0;
-        setVolume(MAX_VOLUME);
-        console.log("🔄 Timer reset");
       }
+    }
 
-      function tick() {
-        elapsedSeconds++;
-        currentTime--;
-        drawDisplay();
-
-        let shouldCount = false;
-        if (isPrep) shouldCount = true;
-        if (isWork && cbBeforeRest.checked) shouldCount = true;
-        if (!isWork && cbBeforeWork.checked) shouldCount = true;
-
-        if (
-          currentTime <= countdownThreshold &&
-          currentTime > 0 &&
-          shouldCount
-        ) {
-          playBeep(660, 0.1); // По-висок тон за финалните секунди
-          setVolume(LOW_VOLUME);
-          speak(currentTime);
-        } else {
-          if (audioPlayer.volume !== MAX_VOLUME) {
-            setVolume(MAX_VOLUME);
-          }
-        }
-
-        if (currentTime <= 0) {
-          setVolume(LOW_VOLUME);
-
-          if (isPrep) {
-            isPrep = false;
-            currentTime = workDuration;
-            speak("Go");
-          } else if (isWork) {
-            if (currentSet >= totalSets) {
-              currentTime = 0;
-              drawDisplay();
-              finishWorkout();
-              return;
-            }
-            isWork = false;
-            currentTime = restDuration;
-            if (cbBeforeRest.checked) speak("Break");
-          } else {
-            isWork = true;
-            currentSet++;
-            currentTime = workDuration;
-            if (cbBeforeWork.checked) speak("Go");
-          }
-
-          setTimeout(() => {
-            if (isRunning) setVolume(MAX_VOLUME);
-          }, 1200);
-
-          drawDisplay();
-        }
+    function toggleShuffle() {
+      isShuffle = !isShuffle;
+      const btn = document.getElementById("btnShuffle");
+      if (isShuffle) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
       }
+      console.log("🔀 Shuffle mode:", isShuffle);
+    }
 
-      function finishWorkout() {
-        stopTimer(false);
-        setVolume(LOW_VOLUME);
+    function playNext() {
+      if (playlist.length === 0) return;
 
-        timerDisplay.classList.remove("work-mode", "rest-mode");
-        timerDisplay.classList.add("finished-mode");
-        statusText.textContent = "ФИНАЛ!";
-        console.log("🏁 Workout finished!");
-
-        playVictorySound();
-
-        setTimeout(() => {
-          speak("Workout Complete");
-        }, 1500);
-
-        const stopMusic = document.getElementById("stopMusicOnFinish").checked;
-
-        setTimeout(() => {
-          if (stopMusic) {
-            audioPlayer.pause();
-          } else {
-            if (!audioPlayer.paused) {
-              setVolume(MAX_VOLUME);
-            }
-          }
-        }, 4000);
-
-        isWork = false;
-        isPrep = false;
+      let nextIndex;
+      if (isShuffle) {
+        do {
+          nextIndex = Math.floor(Math.random() * playlist.length);
+        } while (playlist.length > 1 && nextIndex === currentTrackIndex);
+      } else {
+        nextIndex = currentTrackIndex + 1;
+        if (nextIndex >= playlist.length) nextIndex = 0;
       }
+      playTrack(nextIndex);
+    }
 
-      document.getElementById("timeText").textContent =
-        document.getElementById("workTime").value;
+    function playPrev() {
+      if (playlist.length === 0) return;
+      let prevIndex = currentTrackIndex - 1;
+      if (prevIndex < 0) prevIndex = playlist.length - 1;
+      playTrack(prevIndex);
+    }
 
-      function toggleSettings() {
-        const panel = document.getElementById("settingsPanel");
-        panel.classList.toggle("collapsed");
-        if (panel.classList.contains("collapsed")) {
-          document
-            .getElementById("timerDisplay")
-            .scrollIntoView({ behavior: "smooth" });
-        }
-      }
+    function speak(text) {
+      if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      utterance.rate = 1.2;
+      window.speechSynthesis.speak(utterance);
+    }
 
-      const inputIds = [
-        "prepTime",
-        "workTime",
-        "restTime",
-        "sets",
-        "voiceCountdown",
-        "countBeforeRest",
-        "countBeforeWork",
-        "stopMusicOnFinish",
-      ];
-      inputIds.forEach((id) => {
+    // --- Timer Logic ---
+    function updateInputs() {
+      // Validate inputs
+      const safeInt = (id) => {
         const el = document.getElementById(id);
-        el.addEventListener("change", () => {
-          const val = el.type === "checkbox" ? el.checked : el.value;
-          localStorage.setItem("fitness_timer_" + id, val);
-        });
-      });
-
-      // Зареждане на настройките
-      window.addEventListener("load", () => {
-        inputIds.forEach((id) => {
-          const saved = localStorage.getItem("fitness_timer_" + id);
-          if (saved !== null) {
-            const el = document.getElementById(id);
-            if (el.type === "checkbox") el.checked = saved === "true";
-            else el.value = saved;
-          }
-        });
-        updateInputs();
-        setText.textContent = `Серия: 0 / ${totalSets}`;
-        timeText.textContent = prepDuration > 0 ? prepDuration : workDuration;
-      });
-
-      // Theme logic
-      (function () {
-        const THEME_KEY = "fitness_theme";
-        const btn = document.getElementById("themeToggle");
-
-        function applyTheme(theme) {
-          document.body.classList.remove("light-theme", "dark-theme");
-          document.body.classList.add(
-            theme === "light" ? "light-theme" : "dark-theme"
-          );
-          if (btn) {
-            const pressed = theme === "light" ? "true" : "false";
-            btn.setAttribute("aria-pressed", pressed);
-          }
-        }
-
-        function detectSystemTheme() {
-          try {
-            return window.matchMedia &&
-              window.matchMedia("(prefers-color-scheme: light)").matches
-              ? "light"
-              : "dark";
-          } catch (e) {
-            return "dark";
-          }
-        }
-
-        function initTheme() {
-          let saved = localStorage.getItem(THEME_KEY);
-          if (saved !== "light" && saved !== "dark")
-            saved = detectSystemTheme();
-          applyTheme(saved);
-        }
-
-        function toggleTheme() {
-          const isLight = document.body.classList.contains("light-theme");
-          const next = isLight ? "dark" : "light";
-          applyTheme(next);
-          localStorage.setItem(THEME_KEY, next);
-        }
-
-        if (btn) {
-          btn.addEventListener("click", toggleTheme);
-          btn.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              toggleTheme();
-            }
-          });
-        }
-        document.addEventListener("DOMContentLoaded", initTheme);
-      })();
-
-      function formatTime(s) {
-        const mm = Math.floor(s / 60);
-        const ss = s % 60;
-        return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+        let val = parseInt(el.value) || 0;
+        if (val < 0) { val = 0; el.value = 0; }
+        return val;
       }
-      timeText.textContent = formatTime(currentTime);
 
-      // Регистрация на Service Worker за PWA
-      // Поправена регистрация на Service Worker
-// В секцията за Service Worker добави тази проверка:
-if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(reg => console.log('✅ Service Worker registered!'))
-      .catch(err => console.error('❌ Service Worker failed:', err));
-  });
-}
-    </script>
-  </body>
+      workDuration = Math.max(1, safeInt("workTime"));
+      restDuration = Math.max(0, safeInt("restTime"));
+      totalSets = Math.max(1, safeInt("sets"));
+      prepDuration = Math.max(0, safeInt("prepTime"));
+
+      // Formula: Prep + (Work+Rest)*Sets - LastRest
+      // Assuming Rest is AFTER Work, except the last one?
+      // User said: "15s work * 3 sets + 2s rest + 10s prep = 59s" (15*3 + 2*2 + 10 = 59)
+      // Standard logic: Sets * Work + (Sets-1) * Rest + Prep
+
+      const restsCount = totalSets > 0 ? totalSets - 1 : 0;
+      totalWorkoutSeconds = prepDuration + (workDuration * totalSets) + (restDuration * restsCount);
+
+      // Update Total Time Display
+      const ttEl = document.getElementById("totalTimeDisplay");
+      if (ttEl) {
+        ttEl.textContent = "Общо време: " + formatTime(totalWorkoutSeconds);
+      }
+
+      let requestedCountdown =
+        parseInt(document.getElementById("voiceCountdown").value) || 0;
+      let minInterval =
+        isPrep && prepDuration > 0
+          ? Math.min(workDuration, restDuration || workDuration, prepDuration)
+          : Math.min(workDuration, restDuration || workDuration);
+
+      if (requestedCountdown >= minInterval && minInterval > 0) {
+        countdownThreshold = minInterval - 1;
+      } else {
+        countdownThreshold = Math.max(0, requestedCountdown);
+      }
+      document.getElementById("voiceCountdown").value = countdownThreshold;
+    }
+
+    function drawDisplay() {
+      timeText.textContent = formatTime(currentTime);
+      setText.textContent = `Серия: ${currentSet} / ${totalSets}`;
+
+      const progressPercentValue =
+        Math.min(
+          100,
+          Math.round((elapsedSeconds / totalWorkoutSeconds) * 100)
+        ) || 0;
+
+      document.getElementById("progressBar").style.width =
+        progressPercentValue + "%";
+      document.getElementById("progressPercent").textContent =
+        progressPercentValue + "%";
+
+      timerDisplay.classList.remove("finished-mode");
+      if (isPrep) {
+        statusText.textContent = "ПОДГОТОВКА";
+        timerDisplay.style.borderColor = "var(--highlight)";
+      } else if (isWork) {
+        statusText.textContent = "GO / РАБОТА";
+        timerDisplay.classList.remove("rest-mode");
+        timerDisplay.classList.add("work-mode");
+        timerDisplay.style.borderColor = "";
+      } else {
+        statusText.textContent = "BREAK / ПОЧИВКА";
+        timerDisplay.classList.remove("work-mode");
+        timerDisplay.classList.add("rest-mode");
+      }
+    }
+
+    function startTimer() {
+      if (isRunning) return;
+      requestWakeLock(); // <--- Активира "без заспиване" и показва GIF-а
+
+      // 4. Стандартна логика на таймера
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      updateInputs();
+
+      if (playlist.length > 0 && audioPlayer.paused) {
+        audioPlayer.play().catch((e) => console.log("Audio play error", e));
+      }
+
+      // Първоначален старт (ако е начало)
+      if (currentTime === 0 && currentSet === 1 && isWork && !isPrep) {
+        if (prepDuration > 0) {
+          isPrep = true;
+          currentTime = prepDuration;
+          speak("Prepare");
+        } else {
+          currentTime = workDuration;
+          speak("Starting Workout");
+        }
+      }
+
+      isRunning = true;
+      drawDisplay();
+      console.log("⏱️ Timer started");
+
+      // 5. Стартиране на интервала (това е единственият setInterval, който трябва да има)
+      timerInterval = setInterval(() => {
+        tick();
+      }, 1000);
+    }
+
+    function stopTimer(pauseAudio = true) {
+      clearInterval(timerInterval);
+      isRunning = false;
+
+      releaseWakeLock(); // <--- Позволява заспиване и скрива GIF-а
+
+      console.log("⏱️ Timer paused/stopped");
+
+      if (pauseAudio && !audioPlayer.paused) {
+        audioPlayer.pause();
+      }
+
+      setVolume(1.0);
+    }
+
+    function resetTimer() {
+      stopTimer();
+      elapsedSeconds = 0;
+      document.getElementById("progressBar").style.width = "0%";
+      document.getElementById("progressPercent").textContent = "0%";
+      isWork = true;
+      isPrep = true;
+      updateInputs();
+
+      currentTime = prepDuration > 0 ? prepDuration : workDuration;
+      if (prepDuration <= 0) isPrep = false;
+
+      statusText.textContent = isPrep ? "ПОДГОТОВКА" : "ГОТОВ?";
+      statusText.textContent = isPrep ? "ПОДГОТОВКА" : "ГОТОВ?";
+      timeText.textContent = formatTime(currentTime);
+      setText.textContent = `Серия: 0 / ${totalSets}`;
+
+      timerDisplay.classList.remove("rest-mode", "finished-mode");
+      timerDisplay.classList.add("work-mode");
+
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+      setVolume(1.0);
+      console.log("🔄 Timer reset");
+    }
+
+    function tick() {
+      elapsedSeconds++;
+      currentTime--;
+      drawDisplay();
+
+      let shouldCount = false;
+      if (isPrep) shouldCount = true;
+      if (isWork && cbBeforeRest.checked) shouldCount = true;
+      if (!isWork && cbBeforeWork.checked) shouldCount = true;
+
+      if (
+        currentTime <= countdownThreshold &&
+        currentTime > 0 &&
+        shouldCount
+      ) {
+        playBeep(660, 0.1); // По-висок тон за финалните секунди
+        setVolume(0); // Duck logic handled by setVolume(0) -> DUCKED
+        speak(currentTime);
+      } else {
+        // Restore volume if needed
+        // Since we don't track state nicely, just set to 1.0 (Normal) constantly?
+        // Optimization: Check current volume?
+        // But simplified: Just setVolume(1.0)
+        setVolume(1.0);
+      }
+
+      if (currentTime <= 0) {
+        setVolume(0); // Duck
+
+        if (isPrep) {
+          isPrep = false;
+          currentTime = workDuration;
+          speak("Go");
+        } else if (isWork) {
+          if (currentSet >= totalSets) {
+            currentTime = 0;
+            drawDisplay();
+            finishWorkout();
+            return;
+          }
+          isWork = false;
+          currentTime = restDuration;
+          if (cbBeforeRest.checked) speak("Break");
+        } else {
+          isWork = true;
+          currentSet++;
+          currentTime = workDuration;
+          if (cbBeforeWork.checked) speak("Go");
+        }
+
+        setTimeout(() => {
+          if (isRunning) setVolume(1.0);
+        }, 1200);
+
+        drawDisplay();
+      }
+    }
+
+    function finishWorkout() {
+      stopTimer(false);
+      setVolume(0); // Duck
+
+      timerDisplay.classList.remove("work-mode", "rest-mode");
+      timerDisplay.classList.add("finished-mode");
+      statusText.textContent = "ФИНАЛ!";
+      console.log("🏁 Workout finished!");
+
+      playVictorySound();
+
+      setTimeout(() => {
+        speak("Workout Complete");
+      }, 1500);
+
+      const stopMusic = document.getElementById("stopMusicOnFinish").checked;
+
+      setTimeout(() => {
+        if (stopMusic) {
+          audioPlayer.pause();
+        } else {
+          if (!audioPlayer.paused) {
+            setVolume(1.0);
+          }
+        }
+      }, 4000);
+
+      isWork = false;
+      isPrep = false;
+    }
+
+    document.getElementById("timeText").textContent =
+      document.getElementById("workTime").value;
+
+    function toggleSettings() {
+      const panel = document.getElementById("settingsPanel");
+      panel.classList.toggle("collapsed");
+      if (panel.classList.contains("collapsed")) {
+        document
+          .getElementById("timerDisplay")
+          .scrollIntoView({ behavior: "smooth" });
+      }
+    }
+
+    const inputIds = [
+      "prepTime",
+      "workTime",
+      "restTime",
+      "sets",
+      "voiceCountdown",
+      "countBeforeRest",
+      "countBeforeWork",
+      "stopMusicOnFinish",
+    ];
+    inputIds.forEach((id) => {
+      const el = document.getElementById(id);
+      el.addEventListener("change", () => {
+        const val = el.type === "checkbox" ? el.checked : el.value;
+        localStorage.setItem("fitness_timer_" + id, val);
+
+        updateInputs();
+
+        // If timer is not running and hasn't really started (no elapsed time),
+        // update the display immediately to show new Prep/Work time.
+        if (!isRunning && elapsedSeconds === 0) {
+          // Re-calc start time
+          let newPrep = parseInt(document.getElementById("prepTime").value) || 0;
+          let newWork = parseInt(document.getElementById("workTime").value) || 0;
+
+          // Sync variables just in case
+          prepDuration = Math.max(0, newPrep);
+          workDuration = Math.max(1, newWork);
+          // We use the function logic mainly, but here we can just reset logic
+          // Easier: call resetTimer() without sound effect? 
+          // resetTimer() stops, resets elapsed, and draws display. Perfect.
+          resetTimer();
+        }
+      });
+
+      // Input validation for negative numbers
+      if (el.type === "number") {
+        el.addEventListener("input", function () {
+          if (this.value < 0) this.value = 0;
+        });
+      }
+    });
+
+    // Зареждане на настройките
+    window.addEventListener("load", () => {
+      inputIds.forEach((id) => {
+        const saved = localStorage.getItem("fitness_timer_" + id);
+        if (saved !== null) {
+          const el = document.getElementById(id);
+          if (el.type === "checkbox") el.checked = saved === "true";
+          else el.value = saved;
+        }
+      });
+      // Volume Slider Listener
+      const volSlider = document.getElementById("volumeSlider");
+      if (volSlider) {
+        volSlider.addEventListener("input", (e) => updateMusicVolume(e.target.value));
+      }
+
+      const savedVol = localStorage.getItem("fitness_music_volume");
+      if (savedVol !== null) {
+        updateMusicVolume(savedVol);
+        if (volSlider) volSlider.value = savedVol;
+        const volVal = document.getElementById("volValue");
+        if (volVal) volVal.textContent = Math.round(savedVol * 100) + "%";
+      }
+
+      updateInputs();
+      setText.textContent = `Серия: 0 / ${totalSets}`;
+      timeText.textContent = formatTime(prepDuration > 0 ? prepDuration : workDuration);
+    });
+
+    // Theme logic
+    (function () {
+      const THEME_KEY = "fitness_theme";
+      const btn = document.getElementById("themeToggle");
+
+      function applyTheme(theme) {
+        document.body.classList.remove("light-theme", "dark-theme");
+        document.body.classList.add(
+          theme === "light" ? "light-theme" : "dark-theme"
+        );
+        if (btn) {
+          const pressed = theme === "light" ? "true" : "false";
+          btn.setAttribute("aria-pressed", pressed);
+        }
+      }
+
+      function detectSystemTheme() {
+        try {
+          return window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light"
+            : "dark";
+        } catch (e) {
+          return "dark";
+        }
+      }
+
+      function initTheme() {
+        let saved = localStorage.getItem(THEME_KEY);
+        if (saved !== "light" && saved !== "dark")
+          saved = detectSystemTheme();
+        applyTheme(saved);
+      }
+
+      function toggleTheme() {
+        const isLight = document.body.classList.contains("light-theme");
+        const next = isLight ? "dark" : "light";
+        applyTheme(next);
+        localStorage.setItem(THEME_KEY, next);
+      }
+
+      if (btn) {
+        btn.addEventListener("click", toggleTheme);
+        btn.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleTheme();
+          }
+        });
+      }
+      document.addEventListener("DOMContentLoaded", initTheme);
+    })();
+
+    function formatTime(s) {
+      const mm = Math.floor(s / 60);
+      const ss = s % 60;
+      return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+    }
+    timeText.textContent = formatTime(currentTime);
+
+
+    // Поправена регистрация на Service Worker
+    if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(reg => console.log('✅ Service Worker registered!'))
+          .catch(err => console.error('❌ Service Worker failed:', err));
+      });
+    }
+  </script>
+</body>
+
 </html>
