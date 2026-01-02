@@ -1,15 +1,15 @@
 {
   "short_name": "FitnessTimer",
   "name": "Pro Fitness Timer & DJ",
-  "icons": [
+"icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3048/3048398.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
-  "start_url": "./fitness-02-01-2025.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "theme_color": "#121212",
   "background_color": "#121212"

@@ -12,8 +12,10 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
-	<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#121212">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="favicon.svg" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#121212" />
 
     <title>Pro Fitness Timer & DJ</title>
     <style>
@@ -560,8 +562,8 @@
         background: rgba(41, 182, 246, 0.15);
         border: 1px solid var(--highlight);
       }
-	  
-	  /* Скриваме истинския инпут */
+
+      /* Скриваме истинския инпут */
       #audioFiles {
         display: none;
       }
@@ -711,7 +713,7 @@
         <label for="audioFiles" class="custom-file-upload">
           ➕ Добави песни
         </label>
-        
+
         <input
           type="file"
           id="audioFiles"
@@ -720,9 +722,18 @@
           onchange="loadPlaylist()"
         />
 
-        <div style="font-size: 0.8rem; color: #aaa; margin-top: 8px; text-align: center; line-height: 1.4;">
-           💡 За добавяне на множествени песни ги добавете от бутона "Моите файлове", "My Files", "Storage".<br>
-           Можеш да натискаш бутона многократно, за да добавяш още песни.
+        <div
+          style="
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 8px;
+            text-align: center;
+            line-height: 1.4;
+          "
+        >
+          💡 За добавяне на множествени песни ги добавете от бутона "Моите
+          файлове", "My Files", "Storage".<br />
+          Можеш да натискаш бутона многократно, за да добавяш още песни.
         </div>
       </div>
 
@@ -751,71 +762,83 @@
       <ul class="playlist" id="playlist"></ul>
     </div>
 
-    <div id="wakeLockContainer" style="display: none; margin-top: 20px; text-align: center; width: 100%; max-width: 400px;"></div>
-	
+    <div
+      id="wakeLockContainer"
+      style="
+        display: none;
+        margin-top: 20px;
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+      "
+    ></div>
 
-<script>
-// --- Wake Lock Variable ---
-let wakeLock = null;
-const wakeLockContainer = document.getElementById("wakeLockContainer");
+    <script>
+      // --- Wake Lock Variable ---
+      let wakeLock = null;
+      const wakeLockContainer = document.getElementById("wakeLockContainer");
 
-// Функция за активиране на Wake Lock (Държи екрана светнат)
-async function requestWakeLock() {
-  try {
-    if ('wakeLock' in navigator) {
-      wakeLock = await navigator.wakeLock.request('screen');
-      console.log('💡 Screen Wake Lock active');
-    }
-  } catch (err) {
-    console.error(`❌ Wake Lock error: ${err.name}, ${err.message}`);
-  }
+      // Функция за активиране на Wake Lock (Държи екрана светнат)
+      async function requestWakeLock() {
+        try {
+          if ("wakeLock" in navigator) {
+            wakeLock = await navigator.wakeLock.request("screen");
+            console.log("💡 Screen Wake Lock active");
+          }
+        } catch (err) {
+          console.error(`❌ Wake Lock error: ${err.name}, ${err.message}`);
+        }
+      }
 
-}
+      // Функция за освобождаване на екрана
+      async function releaseWakeLock() {
+        if (wakeLock !== null) {
+          await wakeLock.release();
+          wakeLock = null;
+          console.log("🌑 Screen Wake Lock released");
+        }
+        if (wakeLockContainer) wakeLockContainer.style.display = "none";
+      }
 
-// Функция за освобождаване на екрана
-async function releaseWakeLock() {
-  if (wakeLock !== null) {
-    await wakeLock.release();
-    wakeLock = null;
-    console.log('🌑 Screen Wake Lock released');
-  }
-  if (wakeLockContainer) wakeLockContainer.style.display = "none";
-}
+      function playBeep(frequency = 440, duration = 0.1) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
-  function playBeep(frequency = 440, duration = 0.1) {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
 
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          0.01,
+          audioCtx.currentTime + duration
+        );
 
-  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
 
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.start();
-  osc.stop(audioCtx.currentTime + duration);
-  }
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      }
 
       // -------------------------------------------------------
       // 1. ЛОГВАНЕ И ДИАГНОСТИКА (SYSTEM LOGGING)
       // -------------------------------------------------------
       window.addEventListener("load", () => {
-        console.log("%c✅ Приложението е заредено успешно.", "color: green; font-weight: bold; font-size: 14px;");
+        console.log(
+          "%c✅ Приложението е заредено успешно.",
+          "color: green; font-weight: bold; font-size: 14px;"
+        );
       });
 
       window.addEventListener("error", (event) => {
         console.error("❌ Глобална грешка в приложението:", event.message);
       });
 
-
       // -------------------------------------------------------
       // 3. MAIN LOGIC
       // -------------------------------------------------------
       let prepDuration = 10;
-      let isPrep = false; 
+      let isPrep = false;
 
       let workDuration = 30;
       let restDuration = 5;
@@ -867,10 +890,10 @@ async function releaseWakeLock() {
           osc.stop(time + duration);
         };
 
-        playNote(523.25, t, 0.4); 
-        playNote(659.25, t + 0.1, 0.4); 
-        playNote(783.99, t + 0.2, 0.4); 
-        playNote(1046.5, t + 0.4, 0.8); 
+        playNote(523.25, t, 0.4);
+        playNote(659.25, t + 0.1, 0.4);
+        playNote(783.99, t + 0.2, 0.4);
+        playNote(1046.5, t + 0.4, 0.8);
 
         const osc2 = audioCtx.createOscillator();
         const gain2 = audioCtx.createGain();
@@ -888,26 +911,28 @@ async function releaseWakeLock() {
       function loadPlaylist() {
         const fileInput = document.getElementById("audioFiles");
         const newFiles = Array.from(fileInput.files);
-        
+
         if (newFiles.length === 0) {
-            console.warn("⚠️ Няма избрани файлове.");
-            return;
+          console.warn("⚠️ Няма избрани файлове.");
+          return;
         }
 
         try {
-            playlist = [...playlist, ...newFiles];
-            console.log(`📂 Успешно добавени ${newFiles.length} файла. Общо песни: ${playlist.length}`);
-            
-            renderPlaylistUI();
+          playlist = [...playlist, ...newFiles];
+          console.log(
+            `📂 Успешно добавени ${newFiles.length} файла. Общо песни: ${playlist.length}`
+          );
 
-            if (audioPlayer.src === "" || audioPlayer.paused) {
-                const firstNewIndex = playlist.length - newFiles.length;
-                loadTrack(firstNewIndex, false);
-            }
-            fileInput.value = "";
+          renderPlaylistUI();
+
+          if (audioPlayer.src === "" || audioPlayer.paused) {
+            const firstNewIndex = playlist.length - newFiles.length;
+            loadTrack(firstNewIndex, false);
+          }
+          fileInput.value = "";
         } catch (error) {
-            console.error("❌ Грешка при зареждане на плейлиста:", error);
-            alert("Възникна грешка при зареждането на файловете.");
+          console.error("❌ Грешка при зареждане на плейлиста:", error);
+          alert("Възникна грешка при зареждането на файловете.");
         }
       }
 
@@ -927,24 +952,26 @@ async function releaseWakeLock() {
         currentTrackIndex = index;
 
         try {
-            const fileUrl = URL.createObjectURL(playlist[index]);
-            audioPlayer.src = fileUrl;
-            nowPlayingEl.textContent = "▶ " + playlist[index].name;
-            console.log("🎵 Заредена песен:", playlist[index].name);
+          const fileUrl = URL.createObjectURL(playlist[index]);
+          audioPlayer.src = fileUrl;
+          nowPlayingEl.textContent = "▶ " + playlist[index].name;
+          console.log("🎵 Заредена песен:", playlist[index].name);
 
-            Array.from(playlistEl.children).forEach((li, i) => {
+          Array.from(playlistEl.children).forEach((li, i) => {
             li.classList.toggle("active", i === index);
-            });
+          });
 
-            audioPlayer.onended = () => {
+          audioPlayer.onended = () => {
             playNext(); // Changed to playNext to handle shuffle correctly
-            };
+          };
 
-            if (autoPlay) {
-                audioPlayer.play().catch(e => console.error("❌ Audio Autoplay failed:", e));
-            }
+          if (autoPlay) {
+            audioPlayer
+              .play()
+              .catch((e) => console.error("❌ Audio Autoplay failed:", e));
+          }
         } catch (err) {
-            console.error("❌ Грешка при възпроизвеждане на песен:", err);
+          console.error("❌ Грешка при възпроизвеждане на песен:", err);
         }
       }
 
@@ -1008,15 +1035,32 @@ async function releaseWakeLock() {
 
       // --- Timer Logic ---
       function updateInputs() {
-        workDuration = Math.max(1, parseInt(document.getElementById("workTime").value) || 0);
-        restDuration = Math.max(0, parseInt(document.getElementById("restTime").value) || 0);
-        totalSets = Math.max(1, parseInt(document.getElementById("sets").value) || 1);
-        prepDuration = Math.max(0, parseInt(document.getElementById("prepTime").value) || 0);
+        workDuration = Math.max(
+          1,
+          parseInt(document.getElementById("workTime").value) || 0
+        );
+        restDuration = Math.max(
+          0,
+          parseInt(document.getElementById("restTime").value) || 0
+        );
+        totalSets = Math.max(
+          1,
+          parseInt(document.getElementById("sets").value) || 1
+        );
+        prepDuration = Math.max(
+          0,
+          parseInt(document.getElementById("prepTime").value) || 0
+        );
 
-        totalWorkoutSeconds = prepDuration + (workDuration + restDuration) * totalSets - restDuration;
+        totalWorkoutSeconds =
+          prepDuration +
+          (workDuration + restDuration) * totalSets -
+          restDuration;
 
-        let requestedCountdown = parseInt(document.getElementById("voiceCountdown").value) || 0;
-        let minInterval = isPrep && prepDuration > 0
+        let requestedCountdown =
+          parseInt(document.getElementById("voiceCountdown").value) || 0;
+        let minInterval =
+          isPrep && prepDuration > 0
             ? Math.min(workDuration, restDuration || workDuration, prepDuration)
             : Math.min(workDuration, restDuration || workDuration);
 
@@ -1032,10 +1076,16 @@ async function releaseWakeLock() {
         timeText.textContent = currentTime;
         setText.textContent = `Серия: ${currentSet} / ${totalSets}`;
 
-        const progressPercentValue = Math.min(100, Math.round((elapsedSeconds / totalWorkoutSeconds) * 100)) || 0;
+        const progressPercentValue =
+          Math.min(
+            100,
+            Math.round((elapsedSeconds / totalWorkoutSeconds) * 100)
+          ) || 0;
 
-        document.getElementById("progressBar").style.width = progressPercentValue + "%";
-        document.getElementById("progressPercent").textContent = progressPercentValue + "%";
+        document.getElementById("progressBar").style.width =
+          progressPercentValue + "%";
+        document.getElementById("progressPercent").textContent =
+          progressPercentValue + "%";
 
         timerDisplay.classList.remove("finished-mode");
         if (isPrep) {
@@ -1053,7 +1103,7 @@ async function releaseWakeLock() {
         }
       }
 
-function startTimer() {
+      function startTimer() {
         if (isRunning) return;
         requestWakeLock(); // <--- Активира "без заспиване" и показва GIF-а
 
@@ -1087,16 +1137,12 @@ function startTimer() {
         }, 1000);
       }
 
-      function stopTimer(pauseAudio = true) {  
-	   clearInterval(timerInterval);
+      function stopTimer(pauseAudio = true) {
+        clearInterval(timerInterval);
         isRunning = false;
 
         releaseWakeLock(); // <--- Позволява заспиване и скрива GIF-а
-		
 
-
-
-		
         console.log("⏱️ Timer paused/stopped");
 
         if (pauseAudio && !audioPlayer.paused) {
@@ -1107,7 +1153,7 @@ function startTimer() {
       }
 
       function resetTimer() {
-		stopTimer();
+        stopTimer();
         elapsedSeconds = 0;
         document.getElementById("progressBar").style.width = "0%";
         document.getElementById("progressPercent").textContent = "0%";
@@ -1137,11 +1183,15 @@ function startTimer() {
         drawDisplay();
 
         let shouldCount = false;
-        if (isPrep) shouldCount = true; 
+        if (isPrep) shouldCount = true;
         if (isWork && cbBeforeRest.checked) shouldCount = true;
         if (!isWork && cbBeforeWork.checked) shouldCount = true;
 
-        if (currentTime <= countdownThreshold && currentTime > 0 && shouldCount) {
+        if (
+          currentTime <= countdownThreshold &&
+          currentTime > 0 &&
+          shouldCount
+        ) {
           playBeep(660, 0.1); // По-висок тон за финалните секунди
           setVolume(LOW_VOLUME);
           speak(currentTime);
@@ -1184,7 +1234,7 @@ function startTimer() {
       }
 
       function finishWorkout() {
-        stopTimer(false); 
+        stopTimer(false);
         setVolume(LOW_VOLUME);
 
         timerDisplay.classList.remove("work-mode", "rest-mode");
@@ -1214,17 +1264,29 @@ function startTimer() {
         isPrep = false;
       }
 
-      document.getElementById("timeText").textContent = document.getElementById("workTime").value;
+      document.getElementById("timeText").textContent =
+        document.getElementById("workTime").value;
 
       function toggleSettings() {
         const panel = document.getElementById("settingsPanel");
         panel.classList.toggle("collapsed");
         if (panel.classList.contains("collapsed")) {
-          document.getElementById("timerDisplay").scrollIntoView({ behavior: "smooth" });
+          document
+            .getElementById("timerDisplay")
+            .scrollIntoView({ behavior: "smooth" });
         }
       }
 
-      const inputIds = ["prepTime", "workTime", "restTime", "sets", "voiceCountdown", "countBeforeRest", "countBeforeWork", "stopMusicOnFinish"];
+      const inputIds = [
+        "prepTime",
+        "workTime",
+        "restTime",
+        "sets",
+        "voiceCountdown",
+        "countBeforeRest",
+        "countBeforeWork",
+        "stopMusicOnFinish",
+      ];
       inputIds.forEach((id) => {
         const el = document.getElementById(id);
         el.addEventListener("change", () => {
@@ -1255,7 +1317,9 @@ function startTimer() {
 
         function applyTheme(theme) {
           document.body.classList.remove("light-theme", "dark-theme");
-          document.body.classList.add(theme === "light" ? "light-theme" : "dark-theme");
+          document.body.classList.add(
+            theme === "light" ? "light-theme" : "dark-theme"
+          );
           if (btn) {
             const pressed = theme === "light" ? "true" : "false";
             btn.setAttribute("aria-pressed", pressed);
@@ -1264,13 +1328,19 @@ function startTimer() {
 
         function detectSystemTheme() {
           try {
-            return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-          } catch (e) { return "dark"; }
+            return window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: light)").matches
+              ? "light"
+              : "dark";
+          } catch (e) {
+            return "dark";
+          }
         }
 
         function initTheme() {
           let saved = localStorage.getItem(THEME_KEY);
-          if (saved !== "light" && saved !== "dark") saved = detectSystemTheme();
+          if (saved !== "light" && saved !== "dark")
+            saved = detectSystemTheme();
           applyTheme(saved);
         }
 
@@ -1299,21 +1369,17 @@ function startTimer() {
         return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
       }
       timeText.textContent = formatTime(currentTime);
-    
-	// Регистрация на Service Worker за PWA
-if ('serviceWorker' in navigator) {
+
+      // Регистрация на Service Worker за PWA
+      // Поправена регистрация на Service Worker
+// В секцията за Service Worker добави тази проверка:
+if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js')
-      .then(reg => console.log('Service Worker registered!'))
-      .catch(err => console.log('Service Worker failed:', err));
+      .then(reg => console.log('✅ Service Worker registered!'))
+      .catch(err => console.error('❌ Service Worker failed:', err));
   });
-}	
-	
-	
-	
-	</script>
-
-
-
+}
+    </script>
   </body>
 </html>
