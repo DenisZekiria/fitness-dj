@@ -1286,7 +1286,7 @@
       // Update Total Time Display
       const ttEl = document.getElementById("totalTimeDisplay");
       if (ttEl) {
-        ttEl.textContent = "Общо време: " + formatTime(totalWorkoutSeconds);
+        ttEl.textContent = "Общо време: " + formatDurationVerbose(totalWorkoutSeconds);
       }
 
       let requestedCountdown =
@@ -1306,7 +1306,23 @@
 
     function drawDisplay() {
       timeText.textContent = formatTime(currentTime);
-      setText.textContent = `Серия: ${currentSet} / ${totalSets}`;
+      timeText.textContent = formatTime(currentTime);
+
+      const totalRests = totalSets > 0 ? totalSets - 1 : 0;
+      let currentRestCount = 0;
+      if (isPrep) {
+        currentRestCount = 0;
+      } else if (!isWork) {
+        // Resting (Rest comes after Work set X)
+        currentRestCount = currentSet;
+      } else {
+        // Working (We have finished set X-1 rests)
+        currentRestCount = currentSet - 1;
+      }
+      // Safety clamp
+      if (currentRestCount > totalRests) currentRestCount = totalRests;
+
+      setText.textContent = `Серия: ${currentSet} / ${totalSets} | Почивки: ${currentRestCount} / ${totalRests}`;
 
       const progressPercentValue =
         Math.min(
@@ -1337,6 +1353,12 @@
 
     function startTimer() {
       if (isRunning) return;
+
+      // FIX: Ако е ФИНАЛ, автоматично рестартирай преди старт
+      if (timerDisplay.classList.contains("finished-mode")) {
+        resetTimer();
+      }
+
       requestWakeLock(); // <--- Активира "без заспиване" и показва GIF-а
 
       // 4. Стандартна логика на таймера
@@ -1348,7 +1370,8 @@
       }
 
       // Първоначален старт (ако е начало)
-      if (currentTime === 0 && currentSet === 1 && isWork && !isPrep) {
+      // FIX: Проверяваме elapsedSeconds, защото при Reset времето се нулира, но currentTime може да е > 0 (ако има Prep)
+      if (elapsedSeconds === 0) {
         if (prepDuration > 0) {
           isPrep = true;
           currentTime = prepDuration;
@@ -1371,6 +1394,7 @@
 
     function stopTimer(pauseAudio = true) {
       clearInterval(timerInterval);
+      window.speechSynthesis.cancel(); // <--- Спираме говора веднага при пауза
       isRunning = false;
 
       releaseWakeLock(); // <--- Позволява заспиване и скрива GIF-а
@@ -1389,6 +1413,10 @@
       elapsedSeconds = 0;
       document.getElementById("progressBar").style.width = "0%";
       document.getElementById("progressPercent").textContent = "0%";
+
+      // FIX: Нулираме брояча на сериите
+      currentSet = 1;
+
       isWork = true;
       isPrep = true;
       updateInputs();
@@ -1399,7 +1427,9 @@
       statusText.textContent = isPrep ? "ПОДГОТОВКА" : "ГОТОВ?";
       statusText.textContent = isPrep ? "ПОДГОТОВКА" : "ГОТОВ?";
       timeText.textContent = formatTime(currentTime);
-      setText.textContent = `Серия: 0 / ${totalSets}`;
+
+      const totalRests = totalSets > 0 ? totalSets - 1 : 0;
+      setText.textContent = `Серия: 0 / ${totalSets} | Почивки: 0 / ${totalRests}`;
 
       timerDisplay.classList.remove("rest-mode", "finished-mode");
       timerDisplay.classList.add("work-mode");
@@ -1580,7 +1610,12 @@
       }
 
       updateInputs();
-      setText.textContent = `Серия: 0 / ${totalSets}`;
+      updateInputs();
+
+      const tSets = parseInt(document.getElementById("sets").value) || 0;
+      const tRests = tSets > 0 ? tSets - 1 : 0;
+      setText.textContent = `Серия: 0 / ${tSets} | Почивки: 0 / ${tRests}`;
+
       timeText.textContent = formatTime(prepDuration > 0 ? prepDuration : workDuration);
     });
 
@@ -1642,6 +1677,20 @@
       const ss = s % 60;
       return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
     }
+
+    function formatDurationVerbose(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+
+      let parts = [];
+      if (h > 0) parts.push(`${h} ч.`);
+      if (m > 0) parts.push(`${m} мин.`);
+      if (s > 0 || parts.length === 0) parts.push(`${s} сек.`);
+
+      return parts.join(" ");
+    }
+
     timeText.textContent = formatTime(currentTime);
 
 
