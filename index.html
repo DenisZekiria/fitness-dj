@@ -224,14 +224,19 @@
       color: #aaa;
     }
 
-    .now-playing {
-      margin: 10px 0;
+    .now-playing-name {
       font-style: italic;
       color: var(--highlight);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       font-size: 0.9rem;
+    }
+
+    .now-playing-time {
+      color: #aaa;
+      font-size: 0.8rem;
+      margin-top: 2px;
     }
 
     .playlist {
@@ -871,6 +876,10 @@
         <input type="checkbox" id="stopMusicOnFinish" />
         <label for="stopMusicOnFinish">Спри музиката при ФИНАЛ</label>
       </div>
+      <div class="cb-row">
+        <input type="checkbox" id="djMixer" />
+        <label for="djMixer">DJ Mixer (Crossfade)</label>
+      </div>
     </div>
 
     <!-- Presets Section -->
@@ -952,7 +961,10 @@
       </div>
     </div>
 
-    <div class="now-playing" id="nowPlaying">Няма избрана песен</div>
+    <div class="now-playing-container" style="text-align: center; margin: 10px 0;">
+      <div id="nowPlayingName" class="now-playing-name">Няма избрана песен</div>
+      <div id="nowPlayingTime" class="now-playing-time">--:--</div>
+    </div>
 
     <div style="margin: 15px 0;">
       <label for="volumeSlider"
@@ -966,6 +978,7 @@
     </div>
 
     <audio id="audioPlayer" style="width: 100%; height: 30px; margin-top: 10px"></audio>
+    <audio id="audioPlayer2" style="width: 100%; height: 30px; margin-top: 10px; display: none;"></audio>
 
     <div class="player-controls">
       <button class="player-btn" onclick="playPrev()">⏮</button>
@@ -1077,7 +1090,8 @@
     const timerDisplay = document.getElementById("timerDisplay");
     const audioPlayer = document.getElementById("audioPlayer");
     const playlistEl = document.getElementById("playlist");
-    const nowPlayingEl = document.getElementById("nowPlaying");
+    const nowPlayingNameEl = document.getElementById("nowPlayingName");
+    const nowPlayingTimeEl = document.getElementById("nowPlayingTime");
 
     const cbBeforeRest = document.getElementById("countBeforeRest");
     const cbBeforeWork = document.getElementById("countBeforeWork");
@@ -1089,7 +1103,141 @@
     let musicVolumeLevel = 1.0;
     const DUCKED_VOLUME_RATIO = 0.2; // 20% of user volume
 
+    // DJ Mixer State
+    let activePlayer = document.getElementById("audioPlayer");
+    let nextPlayer = document.getElementById("audioPlayer2");
+    let isFading = false;
+    const CROSSFADE_DURATION = 10; // seconds
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Helper: Apply global volume to active player (unless fading)
+    function applyVolumeToActive() {
+      if (!isFading) {
+        activePlayer.volume = musicVolumeLevel;
+      }
+    }
+
+    function checkCrossfade() {
+      const djMixerOn = document.getElementById("djMixer").checked;
+      // Don't crossfade if: disabled, already fading, empty playlist, or track too short
+      if (!djMixerOn || isFading || playlist.length < 2) return;
+      if (activePlayer.duration < CROSSFADE_DURATION + 5) return;
+
+      if (activePlayer.currentTime > activePlayer.duration - CROSSFADE_DURATION) {
+        startCrossfade();
+      }
+    }
+
+    // Initialize Listeners for both players
+    [activePlayer, nextPlayer].forEach(p => {
+      p.addEventListener('timeupdate', (e) => {
+        if (e.target === activePlayer) {
+          checkCrossfade();
+          updateSongTimeDisplay();
+        }
+      });
+      p.addEventListener('loadedmetadata', (e) => {
+        if (e.target === activePlayer) updateSongTimeDisplay();
+      });
+      p.addEventListener('ended', (e) => {
+        // Only trigger manual next if we are the active player and NOT fading 
+        // (if fading, the interval handles the transition)
+        // Also if mixer is ON, usually we crossfade, but if track was too short, we fall back to ended.
+        if (e.target === activePlayer && !isFading) {
+          playNext();
+        }
+      });
+      p.addEventListener('error', (e) => console.error("Audio Error:", e));
+    });
+
+    function startCrossfade() {
+      console.log("🎚️ Starting Crossfade...");
+      isFading = true;
+
+      // 1. Determine Next Track
+      let nextIndex;
+      if (isShuffle) {
+        do {
+          nextIndex = Math.floor(Math.random() * playlist.length);
+        } while (playlist.length > 1 && nextIndex === currentTrackIndex);
+      } else {
+        nextIndex = currentTrackIndex + 1;
+        if (nextIndex >= playlist.length) nextIndex = 0;
+      }
+
+      // 2. Load into Next Player
+      try {
+        const fileUrl = URL.createObjectURL(playlist[nextIndex]);
+        nextPlayer.src = fileUrl;
+        nextPlayer.volume = 0;
+        nextPlayer.play().then(() => {
+          console.log("✨ Next track started (silent)");
+          doCrossfadeRamp(nextIndex);
+        }).catch(e => {
+          console.error("Crossfade play failed", e);
+          isFading = false;
+        });
+      } catch (err) {
+        console.error("Crossfade prep error", err);
+        isFading = false;
+      }
+    }
+
+    function doCrossfadeRamp(nextIndex) {
+      const steps = 20; // 5 seconds * 4 steps/sec ? OR duration
+      // actually let's ramp over the remaining time, but max 5-10s.
+      // smooth fade for 5 seconds is usually enough.
+      const fadeTime = 5000;
+      const stepTime = 250;
+      const stepCount = fadeTime / stepTime;
+      const volStep = musicVolumeLevel / stepCount;
+
+      let currentStep = 0;
+
+      const ramp = setInterval(() => {
+        currentStep++;
+
+        // Ramp Down Active
+        if (activePlayer.volume > volStep) {
+          activePlayer.volume = Math.max(0, activePlayer.volume - volStep);
+        } else {
+          activePlayer.volume = 0;
+        }
+
+        // Ramp Up Next
+        if (nextPlayer.volume < musicVolumeLevel - volStep) {
+          nextPlayer.volume = Math.min(musicVolumeLevel, nextPlayer.volume + volStep);
+        } else {
+          nextPlayer.volume = musicVolumeLevel;
+        }
+
+        if (currentStep >= stepCount || activePlayer.ended) {
+          clearInterval(ramp);
+          completeCrossfade(nextIndex);
+        }
+      }, stepTime);
+    }
+
+    function completeCrossfade(newIndex) {
+      console.log("✅ Crossfade Swapping Players");
+      activePlayer.pause();
+      activePlayer.currentTime = 0;
+      activePlayer.src = ""; // Clear memory?
+
+      // Swap References
+      const temp = activePlayer;
+      activePlayer = nextPlayer;
+      nextPlayer = temp;
+
+      isFading = false;
+
+      // Update State
+      currentTrackIndex = newIndex;
+      activePlayer.volume = musicVolumeLevel; // Ensure full volume
+
+      updateUIForTrack(newIndex);
+    }
 
     function playVictorySound() {
       const t = audioCtx.currentTime;
@@ -1141,7 +1289,7 @@
 
         renderPlaylistUI();
 
-        if (audioPlayer.src === "" || audioPlayer.paused) {
+        if (activePlayer.src === "" || activePlayer.paused) {
           const firstNewIndex = playlist.length - newFiles.length;
           loadTrack(firstNewIndex, false);
         }
@@ -1163,26 +1311,50 @@
       });
     }
 
+    function updateUIForTrack(index) {
+      nowPlayingNameEl.textContent = "▶ " + playlist[index].name;
+      nowPlayingTimeEl.textContent = "(00:00 / 00:00)";
+      console.log("🎵 Active Track:", playlist[index].name);
+      Array.from(playlistEl.children).forEach((li, i) => {
+        li.classList.toggle("active", i === index);
+      });
+    }
+
+    function updateSongTimeDisplay() {
+      if (!activePlayer || !activePlayer.duration) return;
+      const cur = formatTimeMusic(activePlayer.currentTime);
+      const tot = formatTimeMusic(activePlayer.duration);
+
+      nowPlayingTimeEl.textContent = `(${cur} / ${tot})`;
+    }
+
+    function formatTimeMusic(s) {
+      if (isNaN(s)) return "00:00";
+      const mm = Math.floor(s / 60);
+      const ss = Math.floor(s % 60);
+      return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+    }
+
     function loadTrack(index, autoPlay = true) {
       if (index >= playlist.length) index = 0;
       currentTrackIndex = index;
 
+      // If we force load a track, we interrupt any fading
+      if (isFading) {
+        // Reset fade state
+        isFading = false;
+        nextPlayer.pause();
+        // define activePlayer as the one we are loading into
+        activePlayer.volume = musicVolumeLevel;
+      }
+
       try {
         const fileUrl = URL.createObjectURL(playlist[index]);
-        audioPlayer.src = fileUrl;
-        nowPlayingEl.textContent = "▶ " + playlist[index].name;
-        console.log("🎵 Заредена песен:", playlist[index].name);
-
-        Array.from(playlistEl.children).forEach((li, i) => {
-          li.classList.toggle("active", i === index);
-        });
-
-        audioPlayer.onended = () => {
-          playNext(); // Changed to playNext to handle shuffle correctly
-        };
+        activePlayer.src = fileUrl;
+        updateUIForTrack(index);
 
         if (autoPlay) {
-          audioPlayer
+          activePlayer
             .play()
             .catch((e) => console.error("❌ Audio Autoplay failed:", e));
         }
@@ -1198,24 +1370,28 @@
     function updateMusicVolume(val) {
       musicVolumeLevel = parseFloat(val);
       localStorage.setItem("fitness_music_volume", musicVolumeLevel);
-      audioPlayer.volume = musicVolumeLevel;
+      if (!isFading) activePlayer.volume = musicVolumeLevel;
     }
 
     function setVolume(levelRatio) {
       // levelRatio: 1.0 for normal, less for ducking
       if (levelRatio >= 1.0) {
-        audioPlayer.volume = musicVolumeLevel;
+        if (!isFading) activePlayer.volume = musicVolumeLevel;
       } else {
-        audioPlayer.volume = musicVolumeLevel * DUCKED_VOLUME_RATIO;
+        // When ducking, we duck BOTH if fading, or just active
+        const duckVol = musicVolumeLevel * DUCKED_VOLUME_RATIO;
+        activePlayer.volume = duckVol;
+        if (isFading) nextPlayer.volume = duckVol;
       }
     }
 
     function togglePlay() {
       if (playlist.length === 0) return;
-      if (audioPlayer.paused) {
-        audioPlayer.play();
+      if (activePlayer.paused) {
+        activePlayer.play();
       } else {
-        audioPlayer.pause();
+        activePlayer.pause();
+        if (isFading) nextPlayer.pause(); // Pause both if fading
       }
     }
 
@@ -1365,8 +1541,8 @@
       if (audioCtx.state === "suspended") audioCtx.resume();
       updateInputs();
 
-      if (playlist.length > 0 && audioPlayer.paused) {
-        audioPlayer.play().catch((e) => console.log("Audio play error", e));
+      if (playlist.length > 0 && activePlayer.paused) {
+        activePlayer.play().catch((e) => console.log("Audio play error", e));
       }
 
       // Първоначален старт (ако е начало)
@@ -1401,8 +1577,8 @@
 
       console.log("⏱️ Timer paused/stopped");
 
-      if (pauseAudio && !audioPlayer.paused) {
-        audioPlayer.pause();
+      if (pauseAudio && !activePlayer.paused) {
+        activePlayer.pause();
       }
 
       setVolume(1.0);
@@ -1434,8 +1610,8 @@
       timerDisplay.classList.remove("rest-mode", "finished-mode");
       timerDisplay.classList.add("work-mode");
 
-      audioPlayer.pause();
-      audioPlayer.currentTime = 0;
+      activePlayer.pause();
+      activePlayer.currentTime = 0;
       setVolume(1.0);
       console.log("🔄 Timer reset");
     }
@@ -1517,9 +1693,9 @@
 
       setTimeout(() => {
         if (stopMusic) {
-          audioPlayer.pause();
+          activePlayer.pause();
         } else {
-          if (!audioPlayer.paused) {
+          if (!activePlayer.paused) {
             setVolume(1.0);
           }
         }
@@ -1551,6 +1727,7 @@
       "countBeforeRest",
       "countBeforeWork",
       "stopMusicOnFinish",
+      "djMixer",
     ];
     inputIds.forEach((id) => {
       const el = document.getElementById(id);
